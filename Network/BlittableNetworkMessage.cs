@@ -7,6 +7,8 @@ using Bloodstone.API;
 namespace Bloodstone.Network;
 
 // Helper class that serializes a blittable type.
+
+/*
 internal class VBlittableNetworkMessage<T> : VNetworkMessage
 where T : unmanaged
 {
@@ -56,3 +58,4 @@ where T : unmanaged
         }
     }
 }
+*/

@@ -14,6 +14,8 @@ using ProjectM;
 namespace Bloodstone.Network;
 
 /// Contains the serialization hooks for custom packets.
+
+/*
 internal static class SerializationHooks
 {
     // chosen by fair dice roll
@@ -181,3 +183,4 @@ internal static class SerializationHooks
         }
     }
 }
+*/

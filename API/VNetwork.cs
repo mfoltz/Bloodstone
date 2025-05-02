@@ -13,6 +13,8 @@ namespace Bloodstone.API;
 /// VNetwork have built-in support for sending blittable structs without any
 /// additional effort.
 /// </summary>
+
+/*
 public interface VNetworkMessage
 {
     /// <summary>Serialize this value to the given writer.</summary>
@@ -174,3 +176,4 @@ public static class VNetwork
     public static void SendToServerStruct<T>(T msg)
         where T : unmanaged => SendToServer(new VBlittableNetworkMessage<T>(msg));
 }
+*/

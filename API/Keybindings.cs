@@ -1,11 +1,10 @@
+using BepInEx;
+using ProjectM;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using BepInEx;
-using ProjectM;
-using Standart.Hash.xxHash;
 using UnityEngine;
 
 namespace Bloodstone.API;
@@ -185,14 +184,66 @@ public class Keybinding
     // Unique XXHash-based quarter-of-an-assetguid for identification.
     internal int AssetGuid { get; private set; }
 
+    const ulong HASH_LONG = 14695981039346656037UL;
+    const uint HASH_INT = 2166136261U;
     public Keybinding(KeybindingDescription description)
     {
         Description = description;
 
-        ComputeInputFlag();
-        ComputeAssetGuid();
+        ComputeInputFlag(description.Id);
+        ComputeAssetGuid(description.Id);
+    }
+    static ButtonInputAction ComputeInputFlag(string descriptionId)
+    {
+        byte[] bytes = Encoding.UTF8.GetBytes(descriptionId);
+        ulong num = Hash64(bytes);
+        bool flag = false;
+
+        do
+        {
+            foreach (ButtonInputAction buttonInputAction in Enum.GetValues<ButtonInputAction>())
+            {
+                if (num == (ulong)buttonInputAction)
+                {
+                    flag = true;
+                    num--;
+                }
+            }
+        } while (flag);
+
+        return (ButtonInputAction)num;
+    }
+    static int ComputeAssetGuid(string descriptionId)
+    {
+        byte[] bytes = Encoding.UTF8.GetBytes(descriptionId);
+        return (int)Hash32(bytes);
+    }
+    static ulong Hash64(byte[] data)
+    {
+        ulong hash = HASH_LONG;
+
+        foreach (var b in data)
+        {
+            hash ^= b;
+            hash *= 1099511628211UL;
+        }
+
+        return hash;
+    }
+    static uint Hash32(byte[] data)
+    {
+        uint hash = HASH_INT;
+
+        foreach (var b in data)
+        {
+            hash ^= b;
+            hash *= 16777619U;
+        }
+
+        return hash;
     }
 
+    /*
     // Stubborn V Rising internals expect us to have a unique InputFlag
     // for every input. We deterministically generate a random one here,
     // and ensure it is not already in use (by the game).
@@ -216,13 +267,13 @@ public class Keybinding
 
         InputFlag = (ButtonInputAction)hash;
     }
-
     // Ditto, but for asset GUIDs.
     private void ComputeAssetGuid()
     {
         var idBytes = Encoding.UTF8.GetBytes(Description.Id);
         AssetGuid = (int)xxHash32.ComputeHash(idBytes, idBytes.Length);
     }
+    */
 }
 
 // Internal class used for data persistence.

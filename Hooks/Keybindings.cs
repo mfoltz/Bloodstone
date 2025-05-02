@@ -43,7 +43,7 @@ static class Keybindings
     {
         if (!VWorld.IsClient) return;
 
-        BloodstonePlugin.Logger.LogWarning("Client Keybinding support has been disabled for 1.0 release change compatability. It may be rewritten in the future as needed.");
+        BloodstonePlugin.Logger.LogWarning("Client Keybinding support has been disabled for 1.1 release change compatability and will be reimplemented soon!");
         _harmony = Harmony.CreateAndPatchAll(typeof(Keybindings));
     }
 

@@ -8,6 +8,8 @@ namespace Bloodstone.API;
 /// </summary>
 public static class VWorld
 {
+    public static EntityManager EntityManager => Game.EntityManager;
+
     private static World? _clientWorld;
     private static World? _serverWorld;
 

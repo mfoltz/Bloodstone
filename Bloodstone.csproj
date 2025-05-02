@@ -30,18 +30,17 @@
     <None Include="License" Pack="true" Visible="false" PackagePath="" />
   </ItemGroup>
 
+    <Target Name="BuildToServer" AfterTargets="Build">
+        <Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFolder="C:\Program Files (x86)\Steam\steamapps\common\VRisingDedicatedServer\BepInEx\plugins" />
+    </Target>
+    
+    <Target Name="BuildToClient" AfterTargets="Build">
+        <Copy SourceFiles="$(TargetDir)$(ProjectName).dll" DestinationFolder="C:\Program Files (x86)\Steam\steamapps\common\VRising\BepInEx\plugins" />
+    </Target>
+    
   <ItemGroup>
-    <PackageReference Include="VRising.Unhollowed.Client" Version="1.0.*" />
-    <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.691" IncludeAssets="compile" />
-    <PackageReference Include="BepInEx.Core" Version="6.0.0-be.691" IncludeAssets="compile" />
+    <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.733" IncludeAssets="compile" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="2.1.0" />
-    <PackageReference Include="Iced" Version="1.20.0" />
-    <PackageReference Include="Standart.Hash.xxHash" Version="3.1.0">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Costura.Fody" Version="5.7.0">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Fody" Version="6.6.2" />
+    <PackageReference Include="VRising.Unhollowed.Client" Version="1.1.0.9121701" />
   </ItemGroup>
 </Project>

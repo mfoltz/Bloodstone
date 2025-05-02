@@ -11,6 +11,8 @@ namespace Bloodstone.Network;
 /// VRising into sending it over the network. If entities with this 
 /// component are ever saved to disk, it will brick the save. Take caution!
 /// </summary>
+ 
+/*
 internal class CustomNetworkEvent : UnityEngine.Object
 {
     private static bool _isInitialized = false;
@@ -74,3 +76,4 @@ internal class CustomNetworkEvent : UnityEngine.Object
         _isInitialized = true;
     }
 }
+*/

@@ -2,7 +2,9 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
-using Bloodstone.API;
+using Bloodstone.API.Client;
+using Bloodstone.API.Shared;
+using Bloodstone.Util;
 
 namespace Bloodstone
 {
@@ -39,8 +41,9 @@ namespace Bloodstone
 
             if (VWorld.IsClient)
             {
-                API.KeybindManager.Load();
+                // KeybindManager.Load();
                 // Hooks.Keybindings.Initialize();
+                Persistence.LoadKeybinds();
             }
 
             Hooks.OnInitialize.Initialize();
@@ -66,8 +69,9 @@ namespace Bloodstone
 
             if (VWorld.IsClient)
             {
-                API.KeybindManager.Save();
-                Hooks.Keybindings.Uninitialize();
+                // KeybindManager.Save();
+                // Hooks.Keybindings.Uninitialize();
+                Persistence.SaveKeybinds();
             }
 
             Hooks.OnInitialize.Uninitialize();

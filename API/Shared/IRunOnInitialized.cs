@@ -1,4 +1,6 @@
-namespace Bloodstone.API;
+using Bloodstone.Services;
+
+namespace Bloodstone.API.Shared;
 
 /// <summary>
 /// Helper interface for plugins that wish to run something once the
@@ -24,5 +26,9 @@ public interface IRunOnInitialized
     /// See the type documentation for IRunOnInitialized for more details on the
     /// exact semantics of this function.
     /// </summary>
-    public void OnGameInitialized();
+    internal void OnGameInitialized()
+    {
+        PlayerService.Initialize();
+        VEvent.Initialize();
+    }
 }

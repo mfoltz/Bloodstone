@@ -1,12 +1,11 @@
 using Il2CppInterop.Runtime;
 using ProjectM;
 using ProjectM.Network;
-using Stunlock.Core;
 using System;
 using Unity.Collections;
 using Unity.Entities;
 
-namespace Bloodstone.API;
+namespace Bloodstone.API.Shared;
 
 /// <summary>
 /// Various extensions to make it easier to work with VRising APIs.
@@ -24,7 +23,7 @@ public static class VExtensions
     /// </summary>
     public static void SendSystemMessage(this User user, string message)
     {
-        if (!VWorld.IsServer) throw new System.Exception("SendSystemMessage can only be called on the server.");
+        if (!VWorld.IsServer) throw new Exception("SendSystemMessage can only be called on the server.");
 
         FixedString512Bytes fixedMessage = new(message);
         ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, ref fixedMessage);
@@ -40,7 +39,7 @@ public static class VExtensions
     {
         var component = VWorld.Game.EntityManager.GetComponentData<T>(entity);
         action(ref component);
-        VWorld.Game.EntityManager.SetComponentData<T>(entity, component);
+        VWorld.Game.EntityManager.SetComponentData(entity, component);
     }
 
     public delegate void ActionRefHandler<T>(ref T item);
@@ -162,12 +161,7 @@ public static class VExtensions
     }
     public static bool IsPlayer(this Entity entity)
     {
-        if (entity.Has<PlayerCharacter>())
-        {
-            return true;
-        }
-
-        return false;
+        return entity.Has<PlayerCharacter>();
     }
     public static bool IsVBlood(this Entity entity)
     {
@@ -180,5 +174,12 @@ public static class VExtensions
     public static bool IsVBloodOrGateBoss(this Entity entity)
     {
         return entity.Has<VBloodUnit>();
+    }
+    public static User GetUser(this Entity entity)
+    {
+        if (entity.TryGetComponent(out User user)) return user;
+        else if (entity.TryGetComponent(out PlayerCharacter playerCharacter) && playerCharacter.UserEntity.TryGetComponent(out user)) return user;
+
+        return User.Empty;
     }
 }

@@ -8,8 +8,9 @@ using BepInEx.Unity.IL2CPP;
 using Mono.Cecil;
 using UnityEngine;
 using Bloodstone.Hooks;
+using Bloodstone.API.Client;
 
-namespace Bloodstone.API;
+namespace Bloodstone.API.Shared;
 
 public static class Reload
 {
@@ -36,6 +37,7 @@ public static class Reload
 
         if (VWorld.IsClient)
         {
+            /*
             _clientReloadKeybinding = KeybindManager.Register(new()
             {
                 Id = "gg.deca.Bloodstone.reload",
@@ -43,6 +45,9 @@ public static class Reload
                 Name = "Reload Plugins",
                 DefaultKeybinding = KeyCode.F6,
             });
+            */
+
+            _clientReloadKeybinding = KeybindManager.Register("gg.deca.Bloodstone.reload", "Reload Plugins", "Bloodstone", KeyCode.F6);
             _clientBehavior = BloodstonePlugin.Instance.AddComponent<ReloadBehaviour>();
         }
 
@@ -51,7 +56,7 @@ public static class Reload
 
     internal static void Uninitialize()
     {
-        Hooks.Chat.OnChatMessage -= HandleReloadCommand;
+        Chat.OnChatMessage -= HandleReloadCommand;
 
         if (_clientBehavior != null)
         {
@@ -142,7 +147,7 @@ public static class Reload
                 loaded.Add(metadata.Name);
 
                 // ensure initialize hook runs even if we reload far after initialization is already done
-                if (Hooks.OnInitialize.HasInitialized && plugin is IRunOnInitialized runOnInitialized)
+                if (OnInitialize.HasInitialized && plugin is IRunOnInitialized runOnInitialized)
                 {
                     runOnInitialized.OnGameInitialized();
                 }
@@ -158,11 +163,11 @@ public static class Reload
 
         return loaded;
     }
-
-    private class ReloadBehaviour : UnityEngine.MonoBehaviour
+    private class ReloadBehaviour : MonoBehaviour
     {
         private void Update()
         {
+            /* does this need to be called from MonoBehaviour? either way, self note to add listener later
             if (_clientReloadKeybinding.IsPressed)
             {
                 BloodstonePlugin.Logger.LogInfo("Reloading client plugins...");
@@ -170,6 +175,7 @@ public static class Reload
                 UnloadPlugins();
                 LoadPlugins();
             }
+            */
         }
     }
 }

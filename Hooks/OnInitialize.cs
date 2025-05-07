@@ -1,8 +1,9 @@
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
-using Bloodstone.API;
 using ProjectM;
 using Stunlock.Core;
+using Bloodstone.API.Client;
+using Bloodstone.API.Shared;
 
 namespace Bloodstone.Hooks;
 
@@ -42,7 +43,7 @@ static class OnInitialize
             }
         }
 
-        foreach (var plugin in API.Reload.LoadedPlugins)
+        foreach (var plugin in Reload.LoadedPlugins)
         {
             if (plugin is IRunOnInitialized runOnInitialized)
             {

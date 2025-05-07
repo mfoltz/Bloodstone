@@ -4,7 +4,7 @@ using ProjectM.Network;
 using Stunlock.Network;
 using Bloodstone.Network;
 
-namespace Bloodstone.API;
+namespace Bloodstone.API.Shared;
 
 /// <summary>
 /// Interface to be implemented for any type that you'd like to send over

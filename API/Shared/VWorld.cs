@@ -1,7 +1,8 @@
+using BepInEx.Logging;
 using Unity.Entities;
 using UnityEngine;
 
-namespace Bloodstone.API;
+namespace Bloodstone.API.Shared;
 
 /// <summary>
 /// Various utilities for interacting with the Unity ECS world.
@@ -55,7 +56,7 @@ public static class VWorld
     /// Returns the "game" ECS world for the current instance. This will return either
     /// VWorld.Client or VWorld.Server, depending on what instance of VRising is running.
     /// </summary>
-    public static World Game => IsClient ? VWorld.Client : VWorld.Server;
+    public static World Game => IsClient ? Client : Server;
 
     /// <summary>
     /// Return whether we're currently running on the server build of VRising.
@@ -66,6 +67,7 @@ public static class VWorld
     /// Return whether we're currently running on the client build of VRising.
     /// </summary>
     public static bool IsClient => Application.productName == "VRising";
+    public static ManualLogSource Log => BloodstonePlugin.Logger;
 
     private static World? GetWorld(string name)
     {

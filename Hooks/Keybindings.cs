@@ -10,8 +10,8 @@ using Stunlock.Localization;
 using StunShared.UI;
 using TMPro;
 using UnityEngine;
-using Bloodstone.API;
 using Stunlock.Core;
+using Bloodstone.API.Shared;
 
 namespace Bloodstone.Hooks;
 

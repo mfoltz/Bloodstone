@@ -4,7 +4,7 @@ using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
 using Unity.Entities;
-using Bloodstone.API;
+using Bloodstone.API.Shared;
 
 namespace Bloodstone.Hooks;
 

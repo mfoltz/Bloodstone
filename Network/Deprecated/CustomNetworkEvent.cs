@@ -4,7 +4,7 @@ using Stunlock.Network;
 using Unity.Entities;
 using Bloodstone.API;
 
-namespace Bloodstone.Network;
+namespace Bloodstone.Network.Deprecated;
 
 /// <summary>
 /// Custom network event component. We attach this to entities to trick

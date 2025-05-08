@@ -29,6 +29,6 @@ public interface IRunOnInitialized
     internal void OnGameInitialized()
     {
         PlayerService.Initialize();
-        VEvent.Initialize();
+        VEvents.Initialize();
     }
 }

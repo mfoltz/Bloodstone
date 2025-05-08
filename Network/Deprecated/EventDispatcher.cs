@@ -3,14 +3,13 @@ using System;
 using ProjectM.Network;
 using Unity.Entities;
 using Bloodstone.API;
+using Bloodstone.API.Shared;
 
-namespace Bloodstone.Network;
+namespace Bloodstone.Network.Deprecated;
 
 // Helper class that creates entities to dispatch 
 // network events to VRising's network system, so that
 // our serialization hooks can later handle them.
-
-/*
 internal static class EventDispatcher
 {
     internal static void SendToClient(int userIndex, VNetworkMessage msg)
@@ -48,7 +47,6 @@ internal static class EventDispatcher
             Message = msg
         });
     }
-
     internal static void SendToServer(VNetworkMessage msg)
     {
         if (!VWorld.IsClient)
@@ -79,4 +77,3 @@ internal static class EventDispatcher
         });
     }
 }
-*/

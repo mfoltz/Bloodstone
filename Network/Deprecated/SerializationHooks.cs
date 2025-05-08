@@ -11,10 +11,9 @@ using static NetworkEvents_Serialize;
 using HarmonyLib;
 using ProjectM;
 
-namespace Bloodstone.Network;
+namespace Bloodstone.Network.Deprecated;
 
 /// Contains the serialization hooks for custom packets.
-
 /*
 internal static class SerializationHooks
 {

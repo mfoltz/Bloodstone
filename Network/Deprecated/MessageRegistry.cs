@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using ProjectM.Network;
 using Stunlock.Network;
 
-namespace Bloodstone.Network;
+namespace Bloodstone.Network.Deprecated;
 
+/*
 // Tracks internal registered message types and their event handlers.
 internal class MessageRegistry
 {
@@ -39,3 +40,4 @@ internal class RegisteredEventHandler
     internal Action<FromCharacter, NetBufferIn> OnReceiveFromClient { get; init; }
 #nullable enable
 }
+*/

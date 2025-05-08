@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using Stunlock.Network;
 using Bloodstone.API;
 
-namespace Bloodstone.Network;
+namespace Bloodstone.Network.Deprecated;
 
 // Helper class that serializes a blittable type.
 

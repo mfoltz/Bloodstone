@@ -6,9 +6,8 @@ using ProjectM.Network;
 using Unity.Entities;
 using Bloodstone.API.Shared;
 
-namespace Bloodstone.Hooks;
-
-public static class Chat
+namespace Bloodstone.Patches;
+public static class ChatMessageSystemPatch
 {
     public delegate void ChatEventHandler(VChatEvent e);
 
@@ -16,16 +15,16 @@ public static class Chat
     /// Event emitted whenever a chat message is received by the server. Will
     /// not be emitted when running on the client.
     /// </summary>
-    public static event ChatEventHandler? OnChatMessage;
+    public static event ChatEventHandler? OnChatMessageHandler;
 
-    private static Harmony? _harmony;
+    static Harmony? _harmony;
 
     public static unsafe void Initialize()
     {
         if (_harmony != null)
             throw new Exception("Detour already initialized. You don't need to call this. The Bloodstone plugin will do it for you.");
 
-        _harmony = Harmony.CreateAndPatchAll(typeof(Chat), MyPluginInfo.PLUGIN_GUID);
+        _harmony = Harmony.CreateAndPatchAll(typeof(ChatMessageSystemPatch), MyPluginInfo.PLUGIN_GUID);
     }
 
     public static unsafe void Uninitialize()
@@ -41,6 +40,7 @@ public static class Chat
     public static void OnUpdatePrefix(ChatMessageSystem __instance)
     {
         var entities = __instance.__query_661171423_0.ToEntityArray(Unity.Collections.Allocator.Temp);
+
         foreach (var entity in entities)
         {
             var chatMessage = VWorld.Server.EntityManager.GetComponentData<ChatMessageEvent>(entity);
@@ -51,7 +51,7 @@ public static class Chat
 
             try
             {
-                OnChatMessage?.Invoke(ev);
+                OnChatMessageHandler?.Invoke(ev);
 
                 if (ev.Cancelled)
                     VWorld.Server.EntityManager.DestroyEntity(entity);

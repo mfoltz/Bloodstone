@@ -7,8 +7,8 @@ using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using Mono.Cecil;
 using UnityEngine;
-using Bloodstone.Hooks;
 using Bloodstone.API.Client;
+using Bloodstone.Patches;
 
 namespace Bloodstone.API.Shared;
 
@@ -33,7 +33,7 @@ public static class Reload
         _reloadPluginsFolder = reloadPluginsFolder;
 
         // note: no need to remove this on unload, since we'll unload the hook itself anyway
-        Chat.OnChatMessage += HandleReloadCommand;
+        ChatMessageSystemPatch.OnChatMessageHandler += HandleReloadCommand;
 
         if (VWorld.IsClient)
         {
@@ -56,7 +56,7 @@ public static class Reload
 
     internal static void Uninitialize()
     {
-        Chat.OnChatMessage -= HandleReloadCommand;
+        ChatMessageSystemPatch.OnChatMessageHandler -= HandleReloadCommand;
 
         if (_clientBehavior != null)
         {

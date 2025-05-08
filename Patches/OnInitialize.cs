@@ -5,7 +5,7 @@ using Stunlock.Core;
 using Bloodstone.API.Client;
 using Bloodstone.API.Shared;
 
-namespace Bloodstone.Hooks;
+namespace Bloodstone.Patches;
 
 /// <summary>
 /// Hook responsible for handling calls to IRunOnInitialized.
@@ -13,16 +13,13 @@ namespace Bloodstone.Hooks;
 static class OnInitialize
 {
 #nullable disable
-    private static Harmony _harmony;
+    static Harmony _harmony;
 #nullable enable
-
     public static bool HasInitialized { get; private set; } = false;
-
     public static void Initialize()
     {
         _harmony = Harmony.CreateAndPatchAll(VWorld.IsServer ? typeof(ServerDetours) : typeof(ClientDetours));
     }
-
     public static void Uninitialize()
     {
         _harmony.UnpatchSelf();

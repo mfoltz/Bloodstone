@@ -4,6 +4,8 @@ using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API.Client;
 using Bloodstone.API.Shared;
+using Bloodstone.Network;
+using Bloodstone.Patches;
 using Bloodstone.Util;
 
 namespace Bloodstone
@@ -36,7 +38,8 @@ namespace Bloodstone
             // Hooks
             if (VWorld.IsServer)
             {
-                Hooks.Chat.Initialize();
+                ChatMessageSystemPatch.Initialize();
+                PacketRelay._serverSendToUser = 
             }
 
             if (VWorld.IsClient)
@@ -46,8 +49,8 @@ namespace Bloodstone
                 Persistence.LoadKeybinds();
             }
 
-            Hooks.OnInitialize.Initialize();
-            Hooks.GameFrame.Initialize();
+            OnInitialize.Initialize();
+            Patches.GameFrame.Initialize();
             // Network.SerializationHooks.Initialize();
 
             Logger.LogInfo($"Bloodstone v{MyPluginInfo.PLUGIN_VERSION} loaded.");
@@ -64,7 +67,7 @@ namespace Bloodstone
             // Hooks
             if (VWorld.IsServer)
             {
-                Hooks.Chat.Uninitialize();
+                ChatMessageSystemPatch.Uninitialize();
             }
 
             if (VWorld.IsClient)
@@ -74,8 +77,8 @@ namespace Bloodstone
                 Persistence.SaveKeybinds();
             }
 
-            Hooks.OnInitialize.Uninitialize();
-            Hooks.GameFrame.Uninitialize();
+            OnInitialize.Uninitialize();
+            Patches.GameFrame.Uninitialize();
             // Network.SerializationHooks.Uninitialize();
 
             return true;

@@ -4,7 +4,7 @@ using ProjectM;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Bloodstone.Hooks;
+namespace Bloodstone.Patches;
 
 [HarmonyPatch]
 internal static class InputActionSystemPatch

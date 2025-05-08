@@ -41,7 +41,7 @@
   <ItemGroup>
     <PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.733" IncludeAssets="compile" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="2.1.0" />
-    <PackageReference Include="VRising.Unhollowed.Client" Version="1.1.3.9139701" />
+    <PackageReference Include="VRising.Unhollowed.Client" Version="1.1.5.9148900" />
   </ItemGroup>
     
   <ItemGroup>

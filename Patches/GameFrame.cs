@@ -2,7 +2,7 @@ using Il2CppInterop.Runtime.Injection;
 using System;
 using UnityEngine;
 
-namespace Bloodstone.Hooks;
+namespace Bloodstone.Patches;
 
 public delegate void GameFrameUpdateEventHandler();
 
@@ -24,19 +24,19 @@ public class GameFrame : MonoBehaviour
     /// more performant to inject your own MonoBehavior if you do not
     /// need to be invoked every frame.
     /// </summary>
-    public static event GameFrameUpdateEventHandler? OnUpdate;
+    public static event GameFrameUpdateEventHandler? OnUpdateHandler;
 
     /// <summary>
     /// This event will be emitted on every LateUpdate call. The same
     /// considerations as with the OnUpdate event apply. 
     /// </summary>
-    public static event GameFrameUpdateEventHandler? OnLateUpdate;
+    public static event GameFrameUpdateEventHandler? OnLateUpdateHandler;
 
     void Update()
     {
         try
         {
-            OnUpdate?.Invoke();
+            OnUpdateHandler?.Invoke();
         }
         catch (Exception ex)
         {
@@ -49,7 +49,7 @@ public class GameFrame : MonoBehaviour
     {
         try
         {
-            OnLateUpdate?.Invoke();
+            OnLateUpdateHandler?.Invoke();
         }
         catch (Exception ex)
         {
@@ -57,7 +57,6 @@ public class GameFrame : MonoBehaviour
             BloodstonePlugin.Logger.LogError(ex);
         }
     }
-
     public static void Initialize()
     {
         if (!ClassInjector.IsTypeRegisteredInIl2Cpp<GameFrame>())
@@ -67,11 +66,10 @@ public class GameFrame : MonoBehaviour
 
         _instance = BloodstonePlugin.Instance.AddComponent<GameFrame>();
     }
-
     public static unsafe void Uninitialize()
     {
-        OnUpdate = null;
-        OnLateUpdate = null;
+        OnUpdateHandler = null;
+        OnLateUpdateHandler = null;
         Destroy(_instance);
         _instance = null;
     }

@@ -15,7 +15,7 @@ static class OnInitialize
 #nullable disable
     static Harmony _harmony;
 #nullable enable
-    public static bool HasInitialized { get; private set; } = false;
+    public static bool HasInitialized { get; set; } = false;
     public static void Initialize()
     {
         _harmony = Harmony.CreateAndPatchAll(VWorld.IsServer ? typeof(ServerDetours) : typeof(ClientDetours));
@@ -24,8 +24,7 @@ static class OnInitialize
     {
         _harmony.UnpatchSelf();
     }
-
-    private static void InvokePlugins()
+    static void InvokePlugins()
     {
         BloodstonePlugin.Logger.LogInfo("Game has bootstrapped. Worlds and systems now exist.");
 
@@ -50,7 +49,6 @@ static class OnInitialize
     }
 
     // these are intentionally different classes, even if their bodies _currently_ are the same
-
     private static class ServerDetours
     {
         [HarmonyPatch(typeof(GameBootstrap), nameof(GameBootstrap.Start))]

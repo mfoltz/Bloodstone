@@ -11,13 +11,12 @@ using Bloodstone.API.Client;
 using Bloodstone.Patches;
 
 namespace Bloodstone.API.Shared;
-
 public static class Reload
 {
 #nullable disable
     private static string _reloadCommand;
     private static string _reloadPluginsFolder;
-    private static ReloadBehaviour _clientBehavior;
+    // private static ReloadBehaviour _clientBehavior;
     private static Keybinding _clientReloadKeybinding;
 #nullable enable
 
@@ -26,14 +25,13 @@ public static class Reload
     /// They exist outside of <see cref="IL2CPPChainloader"/>"/>
     /// </summary>
     public static List<BasePlugin> LoadedPlugins { get; } = new();
-
     internal static void Initialize(string reloadCommand, string reloadPluginsFolder)
     {
         _reloadCommand = reloadCommand;
         _reloadPluginsFolder = reloadPluginsFolder;
 
         // note: no need to remove this on unload, since we'll unload the hook itself anyway
-        ChatMessageSystemPatch.OnChatMessageHandler += HandleReloadCommand;
+        ChatMessageSystemServerPatch.OnChatMessageHandler += HandleReloadCommand;
 
         if (VWorld.IsClient)
         {
@@ -48,22 +46,23 @@ public static class Reload
             */
 
             _clientReloadKeybinding = KeybindManager.Register("gg.deca.Bloodstone.reload", "Reload Plugins", "Bloodstone", KeyCode.F6);
-            _clientBehavior = BloodstonePlugin.Instance.AddComponent<ReloadBehaviour>();
+            _clientReloadKeybinding.AddKeyDownListener(ReloadClientPlugins);
+            // _clientBehavior = BloodstonePlugin.Instance.AddComponent<ReloadBehaviour>();
         }
 
         LoadPlugins();
     }
-
     internal static void Uninitialize()
     {
-        ChatMessageSystemPatch.OnChatMessageHandler -= HandleReloadCommand;
+        ChatMessageSystemServerPatch.OnChatMessageHandler -= HandleReloadCommand;
 
+        /*
         if (_clientBehavior != null)
         {
             UnityEngine.Object.Destroy(_clientBehavior);
         }
+        */
     }
-
     private static void HandleReloadCommand(VChatEvent ev)
     {
         if (ev.Message != _reloadCommand) return;
@@ -83,8 +82,7 @@ public static class Reload
             ev.User.SendSystemMessage($"Did not reload any plugins because no reloadable plugins were found. Check the console for more details.");
         }
     }
-
-    private static void UnloadPlugins()
+    static void UnloadPlugins()
     {
         for (int i = LoadedPlugins.Count - 1; i >= 0; i--)
         {
@@ -100,15 +98,13 @@ public static class Reload
             }
         }
     }
-
-    private static List<string> LoadPlugins()
+    static List<string> LoadPlugins()
     {
         if (!Directory.Exists(_reloadPluginsFolder)) return new();
 
         return Directory.GetFiles(_reloadPluginsFolder, "*.dll").SelectMany(LoadPlugin).ToList();
     }
-
-    private static List<string> LoadPlugin(string path)
+    static List<string> LoadPlugin(string path)
     {
         var defaultResolver = new DefaultAssemblyResolver();
         defaultResolver.AddSearchDirectory(_reloadPluginsFolder);
@@ -163,19 +159,26 @@ public static class Reload
 
         return loaded;
     }
-    private class ReloadBehaviour : MonoBehaviour
+    static void ReloadClientPlugins()
     {
-        private void Update()
+        BloodstonePlugin.Logger.LogInfo("Reloading client plugins...");
+        UnloadPlugins();
+        LoadPlugins();
+    }
+
+    /*
+    class ReloadBehaviour : MonoBehaviour
+    {
+        void Update()
         {
-            /* does this need to be called from MonoBehaviour? either way, self note to add listener later
+            // does this need to be called from MonoBehaviour? either way, self note to add listener later
             if (_clientReloadKeybinding.IsPressed)
             {
                 BloodstonePlugin.Logger.LogInfo("Reloading client plugins...");
-
                 UnloadPlugins();
                 LoadPlugins();
             }
-            */
         }
     }
+    */
 }

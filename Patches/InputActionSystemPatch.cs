@@ -1,14 +1,28 @@
 ﻿using Bloodstone.API.Client;
 using HarmonyLib;
 using ProjectM;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Bloodstone.Patches;
-
-[HarmonyPatch]
 internal static class InputActionSystemPatch
 {
+    static Harmony? _harmony;
+    public static void Initialize()
+    {
+        if (_harmony != null)
+            throw new Exception("Detour already initialized. You don't need to call this. The Bloodstone plugin will do it for you.");
+
+        _harmony = Harmony.CreateAndPatchAll(typeof(InputActionSystemPatch), MyPluginInfo.PLUGIN_GUID);
+    }
+    public static void Uninitialize()
+    {
+        if (_harmony == null)
+            throw new Exception("Detour wasn't initialized. Are you trying to unload Bloodstone twice?");
+
+        _harmony.UnpatchSelf();
+    }
 
     [HarmonyPatch(typeof(InputActionSystem), nameof(InputActionSystem.OnCreate))]
     [HarmonyPostfix]
@@ -35,14 +49,14 @@ internal static class InputActionSystemPatch
     }
     static bool IsKeybindDown(Keybinding keybind)
     {
-        return Input.GetKeyDown(keybind.Primary) || Input.GetKeyDown(keybind.Secondary);
+        return Input.GetKeyDown(keybind.Primary);
     }
     static bool IsKeybindUp(Keybinding keybind)
     {
-        return Input.GetKeyUp(keybind.Primary) || Input.GetKeyUp(keybind.Secondary);
+        return Input.GetKeyUp(keybind.Primary);
     }
     static bool IsKeybindPressed(Keybinding keybind)
     {
-        return Input.GetKey(keybind.Primary) || Input.GetKey(keybind.Secondary);
+        return Input.GetKey(keybind.Primary);
     }
 }

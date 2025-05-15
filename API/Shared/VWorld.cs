@@ -1,4 +1,6 @@
 using BepInEx.Logging;
+using ProjectM;
+using ProjectM.Network;
 using Unity.Entities;
 using UnityEngine;
 
@@ -69,7 +71,29 @@ public static class VWorld
     public static bool IsClient => Application.productName == "VRising";
     public static ManualLogSource Log => BloodstonePlugin.Logger;
 
-    private static World? GetWorld(string name)
+    /// <summary>
+    /// Local character and user entities when running on the client build of VRising. Will return Entity.Null on the server build of VRising.
+    /// </summary>
+    static Entity _localCharacter = Entity.Null;
+    static Entity _localUser = Entity.Null;
+    public static Entity LocalCharacter =>
+        IsClient
+        ? (_localCharacter != Entity.Null
+            ? _localCharacter
+            : (ConsoleShared.TryGetLocalCharacterInCurrentWorld(out _localCharacter, _clientWorld)
+                ? _localCharacter
+                : Entity.Null))
+        : Entity.Null;
+    public static Entity LocalUser =>
+        IsClient
+        ? (_localUser != Entity.Null
+            ? _localUser
+            : (ConsoleShared.TryGetLocalUserInCurrentWorld(out _localUser, _clientWorld)
+                ? _localUser
+                : Entity.Null))
+        : Entity.Null;
+    public static NetworkId LocalNetworkId => LocalUser.GetNetworkId();
+    static World? GetWorld(string name)
     {
         foreach (var world in World.s_AllWorlds)
         {

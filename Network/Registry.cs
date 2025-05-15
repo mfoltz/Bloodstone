@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using static Bloodstone.Network.Serialization;
 
 namespace Bloodstone.Network;
 internal static class Registry
@@ -19,12 +20,13 @@ internal static class Registry
         public const int SAFE_PAYLOAD_BYTES = MAX_CHAT_BYTES - HEADER_RESERVE;
         public const string SHARED_KEY = MyPluginInfo.PLUGIN_VERSION;
     }
-    public record Handler(Direction Dir, Action<object> Invoke);
+    public record Handler(Direction Dir, Action<object> Invoke, UnpackDelHandler Unpack);
     static readonly ConcurrentDictionary<uint, Handler> _handlers = new();
-    public static void Register(Type t, Direction dir, Action<object> cb)
+    public static void Register(Type type, Direction direction, Action<object> action)
     {
-        uint id = Hash32(t.FullName!);
-        _handlers[id] = new Handler(dir, cb);
+        uint id = Hash32(type.FullName!);
+        UnpackDelHandler unpacker = GetUnpacker(type);
+        _handlers[id] = new Handler(direction, action, unpacker);
     }
     public static bool TryGet(uint id, out Handler handler)
         => _handlers.TryGetValue(id, out handler);

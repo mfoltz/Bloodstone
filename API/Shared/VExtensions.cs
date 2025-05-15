@@ -1,6 +1,7 @@
 using Il2CppInterop.Runtime;
 using ProjectM;
 using ProjectM.Network;
+using ProjectM.Shared;
 using System;
 using Unity.Collections;
 using Unity.Entities;
@@ -14,7 +15,9 @@ public static class VExtensions
 {
     static EntityManager EntityManager => VWorld.EntityManager;
 
-    // for checking entity indexes by string to verify within entityManager capacity
+    /// <summary>
+    /// For validating entity index against EntityManager capacity without touching the entity.
+    /// </summary>    
     const string PREFIX = "Entity(";
     const int LENGTH = 7;
 
@@ -29,20 +32,13 @@ public static class VExtensions
         ServerChatUtils.SendSystemMessageToClient(VWorld.Server.EntityManager, user, ref fixedMessage);
     }
 
+    public delegate void ActionRefHandler<T>(ref T item);
+
     /// <summary>
     /// Modify the given component on the given entity. The argument is passed
     /// as a reference, so it can be modified in place. The resulting struct
     /// is written back to the entity.
     /// </summary>
-    public static void WithComponentData<T>(this Entity entity, ActionRefHandler<T> action)
-        where T : struct
-    {
-        var component = VWorld.Game.EntityManager.GetComponentData<T>(entity);
-        action(ref component);
-        VWorld.Game.EntityManager.SetComponentData(entity, component);
-    }
-
-    public delegate void ActionRefHandler<T>(ref T item);
     static void With<T>(this Entity entity, ActionRefHandler<T> action) where T : struct
     {
         T item = entity.Read<T>();
@@ -66,7 +62,7 @@ public static class VExtensions
             entity.With(action);
         }
     }
-    public unsafe static void Write<T>(this Entity entity, T componentData) where T : struct
+    public static void Write<T>(this Entity entity, T componentData) where T : struct
     {
         EntityManager.SetComponentData(entity, componentData);
     }
@@ -115,11 +111,24 @@ public static class VExtensions
     }
     public static void Add<T>(this Entity entity) where T : struct
     {
-        EntityManager.AddComponent(entity, new(Il2CppType.Of<T>()));
+        if (!entity.Has<T>()) EntityManager.AddComponent(entity, new(Il2CppType.Of<T>()));
     }
     public static void Remove<T>(this Entity entity) where T : struct
     {
-        EntityManager.RemoveComponent(entity, new(Il2CppType.Of<T>()));
+        if (entity.Has<T>()) EntityManager.RemoveComponent(entity, new(Il2CppType.Of<T>()));
+    }
+    public static void Destroy(this Entity entity, bool immediate = false)
+    {
+        if (!entity.Exists()) return;
+
+        if (immediate)
+        {
+            EntityManager.DestroyEntity(entity);
+        }
+        else
+        {
+            DestroyUtility.Destroy(EntityManager, entity);
+        }
     }
     public static bool Exists(this Entity entity)
     {
@@ -145,11 +154,9 @@ public static class VExtensions
         int closeRel = tail.IndexOf(')');
         if (closeRel <= 0) return false;
 
-        // Parse numbers
         if (!int.TryParse(span[..colon], out int index)) return false;
         if (!int.TryParse(tail[..closeRel], out _)) return false;
 
-        // Single unsigned capacity check
         int capacity = EntityManager.EntityCapacity;
         bool isValid = (uint)index < (uint)capacity;
 
@@ -181,5 +188,40 @@ public static class VExtensions
         else if (entity.TryGetComponent(out PlayerCharacter playerCharacter) && playerCharacter.UserEntity.TryGetComponent(out user)) return user;
 
         return User.Empty;
+    }
+    public static NetworkId GetNetworkId(this Entity entity)
+    {
+        if (entity.TryGetComponent(out NetworkId networkId))
+        {
+            return networkId;
+        }
+
+        return NetworkId.Empty;
+    }
+    public static NativeAccessor<Entity> ToEntityArrayAccessor(this EntityQuery entityQuery, Allocator allocator = Allocator.Temp)
+    {
+        NativeArray<Entity> entities = entityQuery.ToEntityArray(allocator);
+        return new(entities);
+    }
+    public static NativeAccessor<T> ToComponentDataArrayAccessor<T>(this EntityQuery entityQuery, Allocator allocator = Allocator.Temp) where T : unmanaged
+    {
+        NativeArray<T> components = entityQuery.ToComponentDataArray<T>(allocator);
+        return new(components);
+    }
+    public readonly struct NativeAccessor<T> : IDisposable where T : unmanaged
+    {
+        static NativeArray<T> _array;
+        public NativeAccessor(NativeArray<T> array)
+        {
+            _array = array;
+        }
+        public T this[int index]
+        {
+            get => _array[index];
+            set => _array[index] = value;
+        }
+        public int Length => _array.Length;
+        public NativeArray<T>.Enumerator GetEnumerator() => _array.GetEnumerator();
+        public void Dispose() => _array.Dispose();
     }
 }

@@ -32,15 +32,16 @@ public class Keybinding
     public string Category;
 
     public KeyCode Primary = KeyCode.None;
-    public KeyCode Secondary = KeyCode.None;
     public string PrimaryName => KeybindManager.GetLiteral(Primary);
-    public string SecondaryName => KeybindManager.GetLiteral(Secondary);
+
+    // public KeyCode Secondary = KeyCode.None;
+    // public string SecondaryName => KeybindManager.GetLiteral(Secondary);
 
     public delegate void KeyHandler();
 
-    public event KeyHandler OnKeyPressed = delegate { };
-    public event KeyHandler OnKeyDown = delegate { };
-    public event KeyHandler OnKeyUp = delegate { };
+    public event KeyHandler OnKeyPressedHandler = delegate { };
+    public event KeyHandler OnKeyDownHandler = delegate { };
+    public event KeyHandler OnKeyUpHandler = delegate { };
 
     [JsonIgnore]
     public LocalizationKey NameKey;
@@ -66,17 +67,17 @@ public class Keybinding
         InputFlag = KeybindManager.ComputeInputFlag(name);
         AssetGuid = KeybindManager.ComputeAssetGuid(name);
     }
-    public void AddKeyPressedListener(KeyHandler action) => OnKeyPressed += action;
-    public void AddKeyDownListener(KeyHandler action) => OnKeyDown += action;
-    public void AddKeyUpListener(KeyHandler action) => OnKeyUp += action;
-    public void KeyPressed() => OnKeyPressed();
-    public void KeyDown() => OnKeyDown();
-    public void KeyUp() => OnKeyUp();
+    public void AddKeyPressedListener(KeyHandler action) => OnKeyPressedHandler += action;
+    public void AddKeyDownListener(KeyHandler action) => OnKeyDownHandler += action;
+    public void AddKeyUpListener(KeyHandler action) => OnKeyUpHandler += action;
+    public void KeyPressed() => OnKeyPressedHandler();
+    public void KeyDown() => OnKeyDownHandler();
+    public void KeyUp() => OnKeyUpHandler();
     public void ApplySaved(Keybinding keybind)
     {
         if (keybind == null) return;
 
         Primary = keybind.Primary;
-        Secondary = keybind.Secondary;
+        // Secondary = keybind.Secondary;
     }
 }

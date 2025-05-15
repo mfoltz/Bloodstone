@@ -16,41 +16,44 @@ internal static class Serialization
         IncludeFields = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
-    public static PackDelHandler GetPacker(Type t) => _packers.GetOrAdd(t, CreatePacker);
-    public static UnpackDelHandler GetUnpacker(Type t) => _unpackers.GetOrAdd(t, CreateUnpacker);
+    public static PackDelHandler GetPacker(Type type) => _packers.GetOrAdd(type, CreatePacker);
+    public static UnpackDelHandler GetUnpacker(Type type) => _unpackers.GetOrAdd(type, CreateUnpacker);
 
     static readonly ConcurrentDictionary<Type, PackDelHandler> _packers = new();
     static readonly ConcurrentDictionary<Type, UnpackDelHandler> _unpackers = new();
-    static PackDelHandler CreatePacker(Type t)
+    static PackDelHandler CreatePacker(Type type)
     {
-        if (IsBlittable(t))
+        if (IsBlittable(type))
         {
-            int size = Marshal.SizeOf(t);
+            int size = Marshal.SizeOf(type);
 
             return obj =>
             {
-                byte[] arr = ArrayPool<byte>.Shared.Rent(size);
+                int size = Marshal.SizeOf(type);
+                byte[] bytes = new byte[size];              
+
                 unsafe
                 {
-                    fixed (byte* b = arr)
-                        Unsafe.Copy(b, ref obj!);
+                    fixed (void* dest = bytes)
+                        Unsafe.Copy(dest, ref obj!);
                 }
 
-                return arr.AsSpan(0, size).ToArray();
+                return bytes;                           
             };
         }
 
-        return obj => JsonSerializer.SerializeToUtf8Bytes(obj, t, _jsonOptions);
+        return obj => JsonSerializer.SerializeToUtf8Bytes(obj, type, _jsonOptions);
     }
-    static UnpackDelHandler CreateUnpacker(Type t)
+    static UnpackDelHandler CreateUnpacker(Type type)
     {
-        if (IsBlittable(t))
+        if (IsBlittable(type))
         {
-            int size = Marshal.SizeOf(t);
+            int size = Marshal.SizeOf(type);
 
             return data =>
             {
-                object obj = Activator.CreateInstance(t)!;
+                object obj = Activator.CreateInstance(type)!;
+
                 unsafe
                 {
                     fixed (byte* src = data)
@@ -61,7 +64,7 @@ internal static class Serialization
             };
         }
 
-        return data => JsonSerializer.Deserialize(data, t, _jsonOptions)!;
+        return data => JsonSerializer.Deserialize(data, type, _jsonOptions)!;
     }
     static bool IsBlittable(Type t)
         => t.IsValueType && !t.IsEnum && !t.ContainsGenericParameters;

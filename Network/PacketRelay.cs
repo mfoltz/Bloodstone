@@ -1,13 +1,16 @@
-﻿using System;
+﻿using ProjectM.Network;
+using System;
 
 namespace Bloodstone.Network;
 internal static class PacketRelay
 {
-    public static event Action<ProjectM.Network.User, string, bool>? OnPacketReceivedHandler;
-    public static void RaiseRecv(ProjectM.Network.User sender, string msg, bool isServerSide)
-        => OnPacketReceivedHandler?.Invoke(sender, msg, isServerSide);
+    public static event Action<string>? OnPacketReceivedHandler;
+    public static void OnClientPacketReceived(string packet) => OnPacketReceivedHandler?.Invoke(packet);
+    public static void OnServerPacketReceived(string packet) => OnPacketReceivedHandler?.Invoke(packet);
 
-    public static Action<string> _clientSend = _ => throw new InvalidOperationException("PacketRelay.ClientSend not wired!");
-    public static Action<string> _serverBroadcast = _ => throw new InvalidOperationException("PacketRelay.ServerBroadcast not wired!");
-    public static Action<ProjectM.Network.User, string> _serverSendToUser = (_, _) => throw new InvalidOperationException("PacketRelay.ServerSendToUser not wired!");
+    // Packets from Client will always be from the local user
+    public static Action<string> _sendClientPacket = packet => throw new InvalidOperationException("PacketRelay.SendClientPacket isn't bootstrapped, only use this from the client!");
+
+    // Packets from Server need to be sent to specific users
+    public static Action<User, string> _sendServerPacket = (user, packet) => throw new InvalidOperationException("PacketRelay.SendServerPacket isn't bootstrapped, only use this from the server!");
 }

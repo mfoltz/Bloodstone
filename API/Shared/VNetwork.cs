@@ -1,4 +1,5 @@
 ﻿using Bloodstone.Network;
+using ProjectM.Network;
 using System;
 using static Bloodstone.Network.Registry;
 
@@ -9,17 +10,10 @@ public static class VNetwork
         => Register(typeof(T), Direction.Serverbound, obj => handler((T)obj));
     public static void RegisterClientbound<T>(Action<T> handler) where T : unmanaged
         => Register(typeof(T), Direction.Clientbound, obj => handler((T)obj));
-    public static void RegisterBidirectional<T>(Action<T> handler) where T : unmanaged
-    {
-        RegisterServerbound(handler);
-        RegisterClientbound(handler);
-    }
-    public static void SendToServer<T>(T msg) where T : unmanaged
-        => Transport.Send(Direction.Serverbound, msg);
-    public static void SendToClient<T>(ProjectM.Network.User user, T msg) where T : unmanaged
-        => Transport.Send(Direction.Clientbound, msg, user);
-    public static void BroadcastToClients<T>(T msg) where T : unmanaged
-        => Transport.Broadcast(msg);
+    public static void SendToServer<T>(T packet) where T : unmanaged
+        => Transport.SendClientPacket(packet);
+    public static void SendToClient<T>(User user, T packet) where T : unmanaged
+        => Transport.SendServerPacket(user, packet);
     static VNetwork()
     {
         Transport.Bootstrap();

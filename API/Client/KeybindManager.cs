@@ -85,7 +85,6 @@ public static class KeybindManager
     public static void Rebind(Keybinding keybind, KeyCode newKey)
     {
         keybind.Primary = newKey;
-        // KeybindManager.SaveKeybinds();
         Persistence.SaveKeybinds();
     }
     public static ButtonInputAction ComputeInputFlag(string descriptionId)

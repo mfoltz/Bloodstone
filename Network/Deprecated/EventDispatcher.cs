@@ -10,6 +10,8 @@ namespace Bloodstone.Network.Deprecated;
 // Helper class that creates entities to dispatch 
 // network events to VRising's network system, so that
 // our serialization hooks can later handle them.
+
+/*
 internal static class EventDispatcher
 {
     internal static void SendToClient(int userIndex, VNetworkMessage msg)
@@ -77,3 +79,4 @@ internal static class EventDispatcher
         });
     }
 }
+*/

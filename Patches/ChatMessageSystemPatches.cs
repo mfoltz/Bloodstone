@@ -39,9 +39,9 @@ public static class ChatMessageSystemServerPatch
     [HarmonyPrefix]
     public static void OnUpdatePrefix(ChatMessageSystem __instance)
     {
-        using NativeAccessor<Entity> entities = __instance._ChatMessageQuery.ToEntityArrayAccessor();
-        using NativeAccessor<ChatMessageEvent> chatMessageEvents = __instance._ChatMessageQuery.ToComponentDataArrayAccessor<ChatMessageEvent>();
-        using NativeAccessor<FromCharacter> fromCharacters = __instance._ChatMessageQuery.ToComponentDataArrayAccessor<FromCharacter>();
+        using NativeAccessor<Entity> entities = __instance.__query_661171423_0.ToEntityArrayAccessor();
+        using NativeAccessor<ChatMessageEvent> chatMessageEvents = __instance.__query_661171423_0.ToComponentDataArrayAccessor<ChatMessageEvent>();
+        using NativeAccessor<FromCharacter> fromCharacters = __instance.__query_661171423_0.ToComponentDataArrayAccessor<FromCharacter>();
 
         for (int i = 0; i < entities.Length; i++)
         {
@@ -146,7 +146,7 @@ public class VChatEvent
     /// that cancelled events will still be forwarded to other plugins that
     /// have subscribed to this event.
     /// </summary>
-    public bool Cancelled { get; private set; } = false;
+    public bool Cancelled { get; set; } = false;
 
     /// <summary>
     /// The user component instance of the user that sent the message.

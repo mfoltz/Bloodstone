@@ -40,12 +40,14 @@ internal static class Persistence
     public static void SaveOptions() => SaveDictionary(Options, OPTIONS_KEY);
 
     // public static void SaveCommands() => SaveDictionary(CommandQuips, COMMANDS_KEY);
-    public static Dictionary<string, Keybinding> LoadKeybinds() => LoadDictionary<string, Keybinding>(KEYBINDS_KEY);
-    public static Dictionary<string, MenuOption> LoadOptions() => LoadDictionary<string, MenuOption>(OPTIONS_KEY);
+    public static Dictionary<string, Keybinding>? LoadKeybinds() => LoadDictionary<string, Keybinding>(KEYBINDS_KEY);
+    public static Dictionary<string, MenuOption>? LoadOptions() => LoadDictionary<string, MenuOption>(OPTIONS_KEY);
     // public static Dictionary<int, Command> LoadCommands() => LoadDictionary<int, Command>(COMMANDS_KEY);
-    static Dictionary<T, U> LoadDictionary<T, U>(string fileKey)
+    static Dictionary<T, U>? LoadDictionary<T, U>(string fileKey)
+        where T : notnull
+        where U : class
     {
-        if (!_filePaths.TryGetValue(fileKey, out string filePath)) return null;
+        if (!_filePaths.TryGetValue(fileKey, out string? filePath)) return null;
 
         try
         {

@@ -81,15 +81,13 @@ internal static class EntityQueries
         public override object GetValueAt(ArchetypeChunk chunk, int index)
         {
             var handle = EntityManager.GetComponentTypeHandle<T>(true);
-            var array = chunk.GetNativeArray(ref handle);
 
             if (!chunk.Has(ref handle))
             {
-                // var componentType = Il2CppType.Of<T>();
-                // Core.Log.LogWarning($"Chunk {index} missing {componentType.FullName}[{TypeIndex}]!");
                 return default(T);
             }
 
+            var array = chunk.GetNativeArray(ref handle);
             return array[index];
         }
     }

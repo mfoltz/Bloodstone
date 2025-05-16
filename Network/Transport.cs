@@ -11,9 +11,11 @@ namespace Bloodstone.Network;
 internal static class Transport
 {
     static readonly ConcurrentDictionary<string, NetBuffer> _netBuffers = [];
+    static readonly TimeSpan _bufferTime = TimeSpan.FromSeconds(LIFETIME);
 
     static readonly HMACSHA256 _hmac = new(Encoding.UTF8.GetBytes(Const.SHARED_KEY));
     static int _nextMsgId = 1;
+    const int LIFETIME = 10;
 
     static bool _initialized = false;
     public static void SendServerPacket<T>(User user, T packet) where T : unmanaged
@@ -77,6 +79,7 @@ internal static class Transport
     }
     static void OnChatMessage(string message)
     {
+        SweepBuffers();
         if (!message.StartsWith(Const.PREFIX)) return;
 
         string payload = message.AsSpan(Const.PREFIX.Length).ToString();
@@ -100,7 +103,7 @@ internal static class Transport
         int idx = int.Parse(tuple[0]);
         int total = int.Parse(tuple[1]);
 
-        var buffer = _netBuffers.GetOrAdd(msgGuid, _ => new(msgGuid, total));
+        NetBuffer buffer = _netBuffers.GetOrAdd(msgGuid, _ => new(total));
         if (buffer.AddPart(idx, thisChunk))
         {
             _netBuffers.TryRemove(msgGuid, out _);
@@ -126,6 +129,18 @@ internal static class Transport
 
         object obj = handler.Unpack(Convert.FromBase64String(b64));
         handler.Invoke(obj);
+    }
+    static void SweepBuffers()
+    {
+        if (_netBuffers.IsEmpty)
+            return;
+
+        DateTime now = DateTime.UtcNow;
+        foreach (var kv in _netBuffers)
+        {
+            if (now - kv.Value.LastSeen > _bufferTime)
+                _netBuffers.TryRemove(kv.Key, out _);
+        }
     }
     static string ComputeMac(string input)
     {

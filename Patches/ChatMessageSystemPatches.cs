@@ -99,13 +99,11 @@ public static class ChatMessageSystemClientPatch
     {
         using NativeAccessor<Entity> entities = __instance._ReceiveChatMessagesQuery.ToEntityArrayAccessor();
         using NativeAccessor<ChatMessageServerEvent> chatMessageServerEvents = __instance._ReceiveChatMessagesQuery.ToComponentDataArrayAccessor<ChatMessageServerEvent>();
-        using NativeAccessor<FromCharacter> fromCharacters = __instance._ReceiveChatMessagesQuery.ToComponentDataArrayAccessor<FromCharacter>();
 
         for (int i = 0; i < entities.Length; i++)
         {
             Entity entity = entities[i];
             ChatMessageServerEvent chatMessage = chatMessageServerEvents[i];
-            FromCharacter fromCharacter = fromCharacters[i];
 
             string messageText = chatMessage.MessageText.Value;
 

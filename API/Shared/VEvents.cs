@@ -35,13 +35,13 @@ public class VEvents
     }
     public abstract class GameEvent<T> where T : IGameEvent, new()
     {
-        public event EventHandler<T> Event;
+        public event EventHandler<T>? EventHandler;
         protected void Raise(T args)
         {
-            Event?.Invoke(this, args);
+            EventHandler?.Invoke(this, args);
         }
-        public void Subscribe(EventHandler<T> handler) => Event += handler;
-        public void Unsubscribe(EventHandler<T> handler) => Event -= handler;
+        public void Subscribe(EventHandler<T> handler) => EventHandler += handler;
+        public void Unsubscribe(EventHandler<T> handler) => EventHandler -= handler;
         public abstract void Initialize();
         public abstract void Uninitialize();
     }
@@ -61,7 +61,7 @@ public class VEvents
         }
         public class UserConnectedModule : GameEvent<UserConnected>
         {
-            static Harmony _harmony;
+            static Harmony? _harmony;
             public UserConnectedModule()
             {
                 ModuleRegistry.Register(this);
@@ -71,24 +71,24 @@ public class VEvents
                 _harmony = Harmony.CreateAndPatchAll(typeof(Patch), MyPluginInfo.PLUGIN_GUID);
             }
             public override void Uninitialize() => _harmony?.UnpatchSelf();
-            static UserConnectedModule Instance => ModuleRegistry.TryGet<UserConnected>(out var module) ? module as UserConnectedModule : null;
+            static UserConnectedModule? Instance => ModuleRegistry.TryGet<UserConnected>(out var module) ? module as UserConnectedModule : null;
             static class Patch
             {
-                [HarmonyPostfix]
                 [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserConnected))]
+                [HarmonyPostfix]
                 static void OnUserConnected(ServerBootstrapSystem __instance, NetConnectionId netConnectionId)
                 {
                     if (!__instance._NetEndPointToApprovedUserIndex.TryGetValue(netConnectionId, out var userIndex)) return;
                     var client = __instance._ApprovedUsersLookup[userIndex];
                     if (!client.HasPlayerInfo(out var playerInfo)) return;
 
-                    Instance.Raise(new UserConnected { PlayerInfo = playerInfo });
+                    Instance?.Raise(new UserConnected { PlayerInfo = playerInfo });
                 }
             }
         }
         public class UserDisconnectedModule : GameEvent<UserDisconnected>
         {
-            static Harmony _harmony;
+            static Harmony? _harmony;
             public UserDisconnectedModule()
             {
                 ModuleRegistry.Register(this);
@@ -98,24 +98,24 @@ public class VEvents
                 _harmony = Harmony.CreateAndPatchAll(typeof(Patch), MyPluginInfo.PLUGIN_GUID);
             }
             public override void Uninitialize() => _harmony?.UnpatchSelf();
-            static UserDisconnectedModule Instance => ModuleRegistry.TryGet<UserDisconnected>(out var module) ? module as UserDisconnectedModule : null;
+            static UserDisconnectedModule? Instance => ModuleRegistry.TryGet<UserDisconnected>(out var module) ? module as UserDisconnectedModule : null;
             static class Patch
             {
-                [HarmonyPrefix]
                 [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserDisconnected))]
+                [HarmonyPrefix]
                 static void OnUserDisconnected(ServerBootstrapSystem __instance, NetConnectionId netConnectionId)
                 {
                     if (!__instance._NetEndPointToApprovedUserIndex.TryGetValue(netConnectionId, out var userIndex)) return;
                     var client = __instance._ApprovedUsersLookup[userIndex];
                     if (!client.HasPlayerInfo(out var playerInfo)) return;
 
-                    Instance.Raise(new UserDisconnected { PlayerInfo = playerInfo });
+                    Instance?.Raise(new UserDisconnected { PlayerInfo = playerInfo });
                 }
             }
         }
         public class CharacterCreatedModule : GameEvent<CharacterCreated>
         {
-            static Harmony _harmony;
+            static Harmony? _harmony;
             public CharacterCreatedModule()
             {
                 ModuleRegistry.Register(this);
@@ -125,18 +125,18 @@ public class VEvents
                 _harmony = Harmony.CreateAndPatchAll(typeof(Patch), MyPluginInfo.PLUGIN_GUID);
             }
             public override void Uninitialize() => _harmony?.UnpatchSelf();
-            static CharacterCreatedModule Instance => ModuleRegistry.TryGet<CharacterCreated>(out var module) ? module as CharacterCreatedModule : null;
+            static CharacterCreatedModule? Instance => ModuleRegistry.TryGet<CharacterCreated>(out var module) ? module as CharacterCreatedModule : null;
             static class Patch
             {
-                [HarmonyPostfix]
                 [HarmonyPatch(typeof(HandleCreateCharacterEventSystem), nameof(HandleCreateCharacterEventSystem.CreateFadeToBlackEntity))]
+                [HarmonyPostfix]
                 static void OnCharacterCreated(EntityManager entityManager, FromCharacter fromCharacter)
                 {
                     var userEntity = fromCharacter.User;
                     var user = userEntity.GetUser();
                     var playerInfo = CreatePlayerInfo(userEntity, user);
 
-                    Instance.Raise(new CharacterCreated { PlayerInfo = playerInfo });
+                    Instance?.Raise(new CharacterCreated { PlayerInfo = playerInfo });
                 }
             }
         }
@@ -156,7 +156,7 @@ public class VEvents
             var subscribeMethod = module.GetType().GetMethod("Subscribe");
             subscribeMethod?.Invoke(module, [handler]);
         }
-        public static bool TryGet<T>(out GameEvent<T> module) where T : IGameEvent, new()
+        public static bool TryGet<T>(out GameEvent<T>? module) where T : IGameEvent, new()
         {
             if (_modules.TryGetValue(typeof(T), out var result))
             {
@@ -164,13 +164,13 @@ public class VEvents
                 return true;
             }
 
-            module = null;
+            module = default;
             return false;
         }
     }
     static class EventRouter
     {
-        static void RegisterHandlers(object targetInstance = null)
+        static void RegisterHandlers(object? targetInstance = null)
         {
             foreach (var type in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()))
             {

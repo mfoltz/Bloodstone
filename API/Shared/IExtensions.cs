@@ -7,6 +7,8 @@ namespace Bloodstone.API.Shared;
 public static class IExtensions
 {
     public static Dictionary<TValue, TKey> Reverse<TKey, TValue>(this IDictionary<TKey, TValue> source)
+        where TKey : notnull
+        where TValue : notnull
     {
         var reversed = new Dictionary<TValue, TKey>();
 

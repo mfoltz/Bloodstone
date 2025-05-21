@@ -8,7 +8,7 @@ using BepInEx.Unity.IL2CPP;
 using Mono.Cecil;
 using UnityEngine;
 using Bloodstone.API.Client;
-using Bloodstone.Patches;
+using Bloodstone.Patches.Shared;
 
 namespace Bloodstone.API.Shared;
 public static class Reload

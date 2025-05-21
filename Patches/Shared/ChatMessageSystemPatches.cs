@@ -1,4 +1,3 @@
-
 using Bloodstone.API.Shared;
 using Bloodstone.Network;
 using HarmonyLib;
@@ -7,10 +6,10 @@ using ProjectM.Network;
 using ProjectM.UI;
 using System;
 using Unity.Entities;
-using static Bloodstone.Network.PacketRelay;
 using static Bloodstone.API.Shared.VExtensions;
+using static Bloodstone.Network.PacketRelay;
 
-namespace Bloodstone.Patches;
+namespace Bloodstone.Patches.Shared;
 public static class ChatMessageSystemServerPatch
 {
     /// <summary>
@@ -48,18 +47,19 @@ public static class ChatMessageSystemServerPatch
             Entity entity = entities[i];
             ChatMessageEvent chatMessage = chatMessageEvents[i];
             FromCharacter fromCharacter = fromCharacters[i];
-
             string messageText = chatMessage.MessageText.Value;
+
+            VWorld.Log.LogWarning($"[ServerChatSystem] - {messageText} ({chatMessage.MessageType})");
 
             if (Transport.HasPacketPrefix(messageText))
             {
-                OnClientPacketReceived(messageText);
+                OnServerPacketReceived(fromCharacter.User.GetUser(), messageText);
+                // OnClientPacketReceived(messageText);
                 entity.Destroy(true);
                 continue;
             }
 
             VChatEvent vChatEvent = new(fromCharacter.User, fromCharacter.Character, messageText, chatMessage.MessageType);
-            BloodstonePlugin.Logger.LogInfo($"[Chat] [{vChatEvent.Type}] {vChatEvent.User.CharacterName}: {vChatEvent.Message}");
 
             try
             {
@@ -104,12 +104,25 @@ public static class ChatMessageSystemClientPatch
         {
             Entity entity = entities[i];
             ChatMessageServerEvent chatMessage = chatMessageServerEvents[i];
-
             string messageText = chatMessage.MessageText.Value;
+
+            VWorld.Log.LogWarning($"[ClientChatSystem] - {messageText} ({chatMessage.MessageType})");
 
             if (Transport.HasPacketPrefix(messageText))
             {
-                OnServerPacketReceived(messageText);
+                if (!VWorld.LocalCharacter.Exists() || !VWorld.LocalUser.Exists())
+                {
+                    VWorld.Log.LogWarning($"[ClientChatSystem] LocalCharacter or LocalUser does not exist yet! ({DateTime.Now})");
+                }
+
+                FromCharacter fromCharacter = new()
+                {
+                    Character = VWorld.LocalCharacter,
+                    User = VWorld.LocalUser
+                };
+
+                // OnServerPacketReceived(fromCharacter, messageText);
+                OnClientPacketReceived(fromCharacter.User.GetUser(), messageText);
                 entity.Destroy(true);
             }
         }

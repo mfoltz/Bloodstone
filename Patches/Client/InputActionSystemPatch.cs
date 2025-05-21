@@ -5,7 +5,7 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Bloodstone.Patches;
+namespace Bloodstone.Patches.Client;
 internal static class InputActionSystemPatch
 {
     static Harmony? _harmony;

@@ -1,16 +1,16 @@
-﻿using Bloodstone.Services;
+﻿using Bloodstone.API.Shared;
+using Bloodstone.Services;
 using HarmonyLib;
 using ProjectM;
 using ProjectM.Network;
 using Stunlock.Network;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using Unity.Entities;
+using static Bloodstone.API.Shared.VExtensions;
 using static Bloodstone.Services.PlayerService;
 
-namespace Bloodstone.API.Shared;
+namespace Bloodstone.API.Server;
 public class VEvents
 {
     public interface IGameEvent { } 
@@ -35,13 +35,14 @@ public class VEvents
     }
     public abstract class GameEvent<T> where T : IGameEvent, new()
     {
-        public event EventHandler<T>? EventHandler;
+        public delegate void EventModuleHandler(T args);
+        public event EventModuleHandler? EventHandler;
         protected void Raise(T args)
         {
-            EventHandler?.Invoke(this, args);
+            EventHandler?.Invoke(args);
         }
-        public void Subscribe(EventHandler<T> handler) => EventHandler += handler;
-        public void Unsubscribe(EventHandler<T> handler) => EventHandler -= handler;
+        public void Subscribe(EventModuleHandler handler) => EventHandler += handler;
+        public void Unsubscribe(EventModuleHandler handler) => EventHandler -= handler;
         public abstract void Initialize();
         public abstract void Uninitialize();
     }
@@ -59,19 +60,24 @@ public class VEvents
         {
             public PlayerInfo PlayerInfo { get; set; }
         }
+        public class UserKicked : IGameEvent
+        {
+            public PlayerInfo PlayerInfo { get; set; }
+        }
         public class UserConnectedModule : GameEvent<UserConnected>
         {
+            static UserConnectedModule? _instance;
             static Harmony? _harmony;
-            public UserConnectedModule()
-            {
-                ModuleRegistry.Register(this);
-            }
             public override void Initialize()
             {
                 _harmony = Harmony.CreateAndPatchAll(typeof(Patch), MyPluginInfo.PLUGIN_GUID);
             }
             public override void Uninitialize() => _harmony?.UnpatchSelf();
-            static UserConnectedModule? Instance => ModuleRegistry.TryGet<UserConnected>(out var module) ? module as UserConnectedModule : null;
+            public UserConnectedModule()
+            {
+                _instance = this;
+                ModuleRegistry.Register(_instance);
+            }
             static class Patch
             {
                 [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserConnected))]
@@ -80,25 +86,26 @@ public class VEvents
                 {
                     if (!__instance._NetEndPointToApprovedUserIndex.TryGetValue(netConnectionId, out var userIndex)) return;
                     var client = __instance._ApprovedUsersLookup[userIndex];
-                    if (!client.HasPlayerInfo(out var playerInfo)) return;
 
-                    Instance?.Raise(new UserConnected { PlayerInfo = playerInfo });
+                    if (!client.HasPlayerInfo(out var playerInfo)) return;
+                    _instance?.Raise(new UserConnected { PlayerInfo = playerInfo });
                 }
             }
         }
         public class UserDisconnectedModule : GameEvent<UserDisconnected>
         {
+            static UserDisconnectedModule? _instance;
             static Harmony? _harmony;
-            public UserDisconnectedModule()
-            {
-                ModuleRegistry.Register(this);
-            }
             public override void Initialize()
             {
                 _harmony = Harmony.CreateAndPatchAll(typeof(Patch), MyPluginInfo.PLUGIN_GUID);
             }
             public override void Uninitialize() => _harmony?.UnpatchSelf();
-            static UserDisconnectedModule? Instance => ModuleRegistry.TryGet<UserDisconnected>(out var module) ? module as UserDisconnectedModule : null;
+            public UserDisconnectedModule()
+            {
+                _instance = this;
+                ModuleRegistry.Register(_instance);
+            }
             static class Patch
             {
                 [HarmonyPatch(typeof(ServerBootstrapSystem), nameof(ServerBootstrapSystem.OnUserDisconnected))]
@@ -107,36 +114,78 @@ public class VEvents
                 {
                     if (!__instance._NetEndPointToApprovedUserIndex.TryGetValue(netConnectionId, out var userIndex)) return;
                     var client = __instance._ApprovedUsersLookup[userIndex];
-                    if (!client.HasPlayerInfo(out var playerInfo)) return;
 
-                    Instance?.Raise(new UserDisconnected { PlayerInfo = playerInfo });
+                    if (!client.HasPlayerInfo(out var playerInfo)) return;
+                    _instance?.Raise(new UserDisconnected { PlayerInfo = playerInfo });
                 }
             }
         }
         public class CharacterCreatedModule : GameEvent<CharacterCreated>
         {
+            static CharacterCreatedModule? _instance;
             static Harmony? _harmony;
-            public CharacterCreatedModule()
-            {
-                ModuleRegistry.Register(this);
-            }
             public override void Initialize()
             {
                 _harmony = Harmony.CreateAndPatchAll(typeof(Patch), MyPluginInfo.PLUGIN_GUID);
             }
             public override void Uninitialize() => _harmony?.UnpatchSelf();
-            static CharacterCreatedModule? Instance => ModuleRegistry.TryGet<CharacterCreated>(out var module) ? module as CharacterCreatedModule : null;
+            public CharacterCreatedModule()
+            {
+                _instance = this;
+                ModuleRegistry.Register(_instance);
+            }
             static class Patch
             {
                 [HarmonyPatch(typeof(HandleCreateCharacterEventSystem), nameof(HandleCreateCharacterEventSystem.CreateFadeToBlackEntity))]
                 [HarmonyPostfix]
                 static void OnCharacterCreated(EntityManager entityManager, FromCharacter fromCharacter)
                 {
-                    var userEntity = fromCharacter.User;
-                    var user = userEntity.GetUser();
-                    var playerInfo = CreatePlayerInfo(userEntity, user);
+                    Entity userEntity = fromCharacter.User;
+                    User user = userEntity.GetUser();
 
-                    Instance?.Raise(new CharacterCreated { PlayerInfo = playerInfo });
+                    PlayerInfo playerInfo = CreatePlayerInfo(userEntity, user);
+                    _instance?.Raise(new CharacterCreated { PlayerInfo = playerInfo });
+                }
+            }
+        }
+        public class UserKickedModule : GameEvent<UserKicked>
+        {
+            static UserKickedModule? _instance;
+            static Harmony? _harmony;
+            public override void Initialize()
+            {
+                _harmony = Harmony.CreateAndPatchAll(typeof(Patch), MyPluginInfo.PLUGIN_GUID);
+            }
+            public override void Uninitialize() => _harmony?.UnpatchSelf();
+            public UserKickedModule()
+            {
+                _instance = this;
+                ModuleRegistry.Register(_instance);
+            }
+            static class Patch
+            {
+                [HarmonyPatch(typeof(KickBanSystem_Server), nameof(KickBanSystem_Server.OnUpdate))]
+                [HarmonyPrefix]
+                static void OnUpdatePrefix(KickBanSystem_Server __instance)
+                {
+                    using NativeAccessor<KickEvent> kickEvents = __instance._KickQuery.ToComponentDataArrayAccessor<KickEvent>();
+
+                    try
+                    {
+                        for (int i = 0; i < kickEvents.Length; i++)
+                        {
+                            KickEvent kickEvent = kickEvents[i];
+                            ulong steamId = kickEvent.PlatformId;
+
+                            if (!steamId.TryGetPlayerInfo(out PlayerInfo playerInfo)) continue;
+                            _instance?.Raise(new UserKicked { PlayerInfo = playerInfo });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        VWorld.Log.LogError($"[KickBanSystem_Server] Exception in OnUpdatePrefix: {ex}");
+                    }
+
                 }
             }
         }
@@ -148,13 +197,18 @@ public class VEvents
         {
             module.Initialize();
             _modules[typeof(T)] = module;
+            // VWorld.Log.LogInfo($"[Register] Registered module for event type: {typeof(T).Name}");
         }
-        public static void Subscribe(Type eventType, Delegate handler)
+        public static void Subscribe<T>(Action<T> handler) where T : IGameEvent, new()
         {
-            if (!_modules.TryGetValue(eventType, out var module)) return;
-
-            var subscribeMethod = module.GetType().GetMethod("Subscribe");
-            subscribeMethod?.Invoke(module, [handler]);
+            if (_modules.TryGetValue(typeof(T), out var module))
+            {
+                ((GameEvent<T>)module).Subscribe(handler.Invoke);
+            }
+            else
+            {
+                VWorld.Log.LogWarning($"[Subscribe] No registered module for event type! ({typeof(T).Name})");
+            }
         }
         public static bool TryGet<T>(out GameEvent<T>? module) where T : IGameEvent, new()
         {
@@ -168,62 +222,6 @@ public class VEvents
             return false;
         }
     }
-    static class EventRouter
-    {
-        static void RegisterHandlers(object? targetInstance = null)
-        {
-            foreach (var type in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()))
-            {
-                foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-                {
-                    if (!method.IsDefined(typeof(EventHandlerAttribute), inherit: true)) continue;
-
-                    var parameters = method.GetParameters();
-                    if (parameters.Length != 1) continue;
-
-                    var paramType = parameters[0].ParameterType;
-                    if (!typeof(IGameEvent).IsAssignableFrom(paramType)) continue;
-
-                    var handlerType = typeof(EventHandler<>).MakeGenericType(paramType);
-                    var methodDelegate = method.IsStatic
-                        ? Delegate.CreateDelegate(handlerType, method)
-                        : Delegate.CreateDelegate(handlerType, targetInstance ?? Activator.CreateInstance(method.DeclaringType!), method);
-
-                    ModuleRegistry.Subscribe(paramType, methodDelegate);
-                }
-            }
-        }
-        static void RegisterAllModules()
-        {
-            var gameEventType = typeof(GameEvent<>);
-
-            foreach (var type in AppDomain.CurrentDomain.GetAssemblies()
-                     .SelectMany(asm => asm.GetTypes())
-                     .Where(t => t.IsClass && !t.IsAbstract))
-            {
-                var baseType = type.BaseType;
-
-                if (baseType == null || !baseType.IsGenericType) continue;
-
-                var genericDef = baseType.GetGenericTypeDefinition();
-                if (genericDef != gameEventType) continue;
-
-                try
-                {
-                    Activator.CreateInstance(type); // constructor should auto-register
-                }
-                catch (Exception ex)
-                {
-                    VWorld.Log.LogWarning($"[EventRouter] Failed to instantiate module: {type.Name} - {ex}");
-                }
-            }
-        }
-        internal static void RegisterHandlesAndModules()
-        {
-            RegisterHandlers();
-            RegisterAllModules();
-        }
-    }
 
     static bool _initialized = false;
     public static void Initialize()
@@ -231,6 +229,9 @@ public class VEvents
         if (_initialized) return;
         _initialized = true;
 
-        EventRouter.RegisterHandlesAndModules();
+        _ = new ConnectionEventModules.UserConnectedModule();
+        _ = new ConnectionEventModules.UserDisconnectedModule();
+        _ = new ConnectionEventModules.CharacterCreatedModule();
+        _ = new ConnectionEventModules.UserKickedModule();
     }
 }

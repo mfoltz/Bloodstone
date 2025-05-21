@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Bloodstone.API.Shared;
+using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
@@ -23,22 +24,25 @@ internal static class Serialization
     static readonly ConcurrentDictionary<Type, UnpackDelHandler> _unpackers = new();
     static PackDelHandler CreatePacker(Type type)
     {
+        VWorld.Log.LogWarning($"[CreatePacker] Creating packer ({type.Name})");
+
         if (IsBlittable(type))
         {
             int size = Marshal.SizeOf(type);
 
             return obj =>
             {
-                int size = Marshal.SizeOf(type);
-                byte[] bytes = new byte[size];              
+                byte[] bytes = new byte[size];
+                IntPtr ptr = Marshal.AllocHGlobal(size);
 
-                unsafe
+                try
                 {
-                    fixed (void* dest = bytes)
-                        Unsafe.Copy(dest, ref obj!);
+                    Marshal.StructureToPtr(obj, ptr, false);     // write struct -> native
+                    Marshal.Copy(ptr, bytes, 0, size);           // copy native → managed
                 }
+                finally { Marshal.FreeHGlobal(ptr); }
 
-                return bytes;                           
+                return bytes;
             };
         }
 
@@ -46,21 +50,23 @@ internal static class Serialization
     }
     static UnpackDelHandler CreateUnpacker(Type type)
     {
+        VWorld.Log.LogWarning($"[CreateUnpacker] Creating unpacker ({type.Name})");
+
         if (IsBlittable(type))
         {
             int size = Marshal.SizeOf(type);
 
-            return data =>
+            return dataSpan =>
             {
-                object obj = Activator.CreateInstance(type)!;
+                byte[] buffer = dataSpan.ToArray();
+                IntPtr ptr = Marshal.AllocHGlobal(size);
 
-                unsafe
+                try
                 {
-                    fixed (byte* src = data)
-                        Unsafe.Copy(ref obj, src);
+                    Marshal.Copy(buffer, 0, ptr, size);        
+                    return Marshal.PtrToStructure(ptr, type)!;
                 }
-
-                return obj;
+                finally { Marshal.FreeHGlobal(ptr); }
             };
         }
 

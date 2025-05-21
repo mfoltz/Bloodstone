@@ -6,7 +6,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Entities;
-using static Bloodstone.API.Shared.VEvents.ConnectionEventModules;
+using static Bloodstone.API.Server.VEvents;
+using static Bloodstone.API.Server.VEvents.ConnectionEventModules;
 using static Bloodstone.Util.EntityQueries;
 
 namespace Bloodstone.Services;
@@ -21,8 +22,6 @@ public static class PlayerService
     static readonly Dictionary<string, PlayerInfo> _characterNamePlayerInfoCache = [];
     public static IReadOnlyDictionary<string, PlayerInfo> CharacterNameOnlinePlayerInfoCache => _characterNameOnlinePlayerInfoCache;
     static readonly Dictionary<string, PlayerInfo> _characterNameOnlinePlayerInfoCache = [];
-    public static IReadOnlyDictionary<int, PlayerInfo> UserIndexPlayerInfoCache => _userIndexPlayerInfoCache;
-    static readonly Dictionary<int, PlayerInfo> _userIndexPlayerInfoCache = [];
 
     static bool _initialized = false;
     public struct PlayerInfo(ulong steamId = default, Entity userEntity = default, Entity characterEntity = default, User user = default)
@@ -51,6 +50,12 @@ public static class PlayerService
         );
 
         BuildPlayerInfoCache(userQueryDesc).Run();
+        
+        // subscribing to connection events
+        ModuleRegistry.Subscribe<UserConnected>(OnConnect); 
+        ModuleRegistry.Subscribe<UserDisconnected>(OnDisconnect);
+        ModuleRegistry.Subscribe<CharacterCreated>(OnCreate);
+        ModuleRegistry.Subscribe<UserKicked>(OnKick);
     }
     static IEnumerator BuildPlayerInfoCache(QueryDesc userQueryDesc)
     {
@@ -102,42 +107,30 @@ public static class PlayerService
     {
         _steamIdOnlinePlayerInfoCache[playerInfo.SteamId] = playerInfo;
         _characterNameOnlinePlayerInfoCache[playerInfo.Name] = playerInfo;
-        _userIndexPlayerInfoCache[playerInfo.User.Index] = playerInfo;
     }
     static void RemoveOnlinePlayerInfo(PlayerInfo playerInfo)
     {
         _steamIdOnlinePlayerInfoCache.Remove(playerInfo.SteamId);
         _characterNameOnlinePlayerInfoCache.Remove(playerInfo.Name);
-        _userIndexPlayerInfoCache.Remove(playerInfo.User.Index);
     }
-
-    [EventHandler]
     public static void OnConnect(UserConnected userConnected)
     {
         AddPlayerInfo(userConnected.PlayerInfo);
         AddOnlinePlayerInfo(userConnected.PlayerInfo);
     }
-
-    [EventHandler]
     public static void OnCreate(CharacterCreated characterCreated)
     {
         AddPlayerInfo(characterCreated.PlayerInfo);
         AddOnlinePlayerInfo(characterCreated.PlayerInfo);
     }
-
-    [EventHandler]
     public static void OnDisconnect(UserDisconnected userDisconnected)
     {
         RemoveOnlinePlayerInfo(userDisconnected.PlayerInfo);
     }
-
-    /*
-    [EventHandler]
     public static void OnKick(UserKicked userKicked)
     {
         RemoveOnlinePlayerInfo(userKicked.PlayerInfo);
     }
-    */
     public static bool TryGetPlayerInfo(this ulong steamId, out PlayerInfo playerInfo)
     {
         return SteamIdPlayerInfoCache.TryGetValue(steamId, out playerInfo);
@@ -145,9 +138,5 @@ public static class PlayerService
     public static bool TryGetPlayerInfo(this string characterName, out PlayerInfo playerInfo)
     {
         return CharacterNamePlayerInfoCache.TryGetValue(characterName, out playerInfo);
-    }
-    public static bool TryGetPlayerInfo(this int userIndex, out PlayerInfo playerInfo)
-    {
-        return UserIndexPlayerInfoCache.TryGetValue(userIndex, out playerInfo);
     }
 }

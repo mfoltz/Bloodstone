@@ -20,6 +20,8 @@ internal static class Transport
     static bool _initialized = false;
     public static void SendServerPacket<T>(User user, T packet) where T : unmanaged
     {
+        // VWorld.Log.LogWarning("[SendServerPacket] SendToClient(Pong)");
+
         Type type = typeof(T);
         uint typeId = Hash32(type.FullName!);
         var pack = Serialization.GetPacker(type);
@@ -44,8 +46,10 @@ internal static class Transport
             PacketRelay._sendServerPacket(user, full);
         }
     }
-    public static void SendClientPacket<T>(T packet) where T : unmanaged
+    public static void SendClientPacket<T>(User user, T packet) where T : unmanaged
     {
+        // VWorld.Log.LogWarning("[SendClientPacket] SendToServer(Ping)");
+
         Type type = typeof(T);
         uint typeId = Hash32(type.FullName!);
         var pack = Serialization.GetPacker(type);
@@ -67,7 +71,7 @@ internal static class Transport
             string tag = ComputeMac(preHmac);
             string full = Const.PREFIX + preHmac + "|" + tag;
 
-            PacketRelay._sendClientPacket(full);
+            PacketRelay._sendClientPacket(user, full);
         }
     }
     internal static void Bootstrap()
@@ -77,8 +81,10 @@ internal static class Transport
 
         PacketRelay.OnPacketReceivedHandler += OnChatMessage;
     }
-    static void OnChatMessage(string message)
+    static void OnChatMessage(User sender, string message)
     {
+        // VWorld.Log.LogWarning($"[OnChatMessage] {(VWorld.IsServer ? "SERVER" : "CLIENT")} RX fragment/line");
+
         SweepBuffers();
         if (!message.StartsWith(Const.PREFIX)) return;
 
@@ -108,19 +114,22 @@ internal static class Transport
         {
             _netBuffers.TryRemove(msgGuid, out _);
             HandleCompleteMessage(
+                sender,
                 UInt32.Parse(typeIdStr),
                 buffer.Concat());
         }
     }
-    static void HandleCompleteMessage(uint typeId, string b64)
+    static void HandleCompleteMessage(User sender, uint typeId, string b64)
     {
+        // VWorld.Log.LogWarning($"[HandleCompleteMessage] {(VWorld.IsServer ? "SERVER" : "CLIENT")} complete msg typeId=0x{typeId:X}");
+
         if (!TryGet(typeId, out var handler))
             return;
 
         bool shouldUnpack = handler.Dir switch
         {
-            Direction.Serverbound => VWorld.IsClient,
-            Direction.Clientbound => VWorld.IsServer,
+            Direction.Serverbound => VWorld.IsServer,
+            Direction.Clientbound => VWorld.IsClient,
             _ => false
         };
 
@@ -128,7 +137,7 @@ internal static class Transport
             return;
 
         object obj = handler.Unpack(Convert.FromBase64String(b64));
-        handler.Invoke(obj);
+        handler.Invoke(sender, obj);
     }
     static void SweepBuffers()
     {

@@ -1,4 +1,6 @@
+using Bloodstone.Network;
 using Bloodstone.Services;
+using Bloodstone.Util;
 
 namespace Bloodstone.API.Shared;
 
@@ -28,7 +30,6 @@ public interface IRunOnInitialized
     /// </summary>
     internal void OnGameInitialized()
     {
-        PlayerService.Initialize();
-        VEvents.Initialize();
+
     }
 }

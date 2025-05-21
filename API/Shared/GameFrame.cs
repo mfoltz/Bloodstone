@@ -19,27 +19,25 @@ public delegate void GameFrameUpdateEventHandler();
 /// </summary>
 public class GameFrame : MonoBehaviour
 {
-#nullable enable
-    static GameFrame? _instance;
+    private static GameFrame? _instance;
 
     /// <summary>
     /// This event will be emitted on every Update call. It may be
     /// more performant to inject your own MonoBehavior if you do not
     /// need to be invoked every frame.
     /// </summary>
-    public static event GameFrameUpdateEventHandler? OnUpdate;
+    public static event GameFrameUpdateEventHandler? OnUpdateHandler;
 
     /// <summary>
     /// This event will be emitted on every LateUpdate call. The same
     /// considerations as with the OnUpdate event apply. 
     /// </summary>
-    public static event GameFrameUpdateEventHandler? OnLateUpdate;
-#nullable disable
+    public static event GameFrameUpdateEventHandler? OnLateUpdateHandler;
     void Update()
     {
         try
         {
-            OnUpdate?.Invoke();
+            OnUpdateHandler?.Invoke();
         }
         catch (Exception ex)
         {
@@ -47,11 +45,12 @@ public class GameFrame : MonoBehaviour
             BloodstonePlugin.Logger.LogError(ex);
         }
     }
+
     void LateUpdate()
     {
         try
         {
-            OnLateUpdate?.Invoke();
+            OnLateUpdateHandler?.Invoke();
         }
         catch (Exception ex)
         {
@@ -68,15 +67,29 @@ public class GameFrame : MonoBehaviour
 
         _instance = BloodstonePlugin.Instance.AddComponent<GameFrame>();
     }
-    public static void Uninitialize()
+    public static unsafe void Uninitialize()
     {
-        OnUpdate = null;
-        OnLateUpdate = null;
+        OnUpdateHandler = null;
+        OnLateUpdateHandler = null;
         Destroy(_instance);
         _instance = null;
     }
     public static Coroutine StartCoroutine(IEnumerator routine)
     {
-        return _instance?.StartCoroutine(routine.WrapToIl2Cpp());
+        if (_instance == null)
+        {
+            throw new InvalidOperationException("GameFrame is not initialized. Call GameFrame.Initialize() before using this method.");
+        }
+
+        return _instance.StartCoroutine(routine.WrapToIl2Cpp());
+    }
+    public static void RunCoroutine(IEnumerator routine)
+    {
+        if (_instance == null)
+        {
+            throw new InvalidOperationException("GameFrame is not initialized. Call GameFrame.Initialize() before using this method.");
+        }
+
+        _instance.StartCoroutine(routine.WrapToIl2Cpp());
     }
 }

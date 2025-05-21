@@ -77,22 +77,17 @@ public static class VWorld
     static Entity _localCharacter = Entity.Null;
     static Entity _localUser = Entity.Null;
     public static Entity LocalCharacter =>
-        IsClient
-        ? (_localCharacter != Entity.Null
+        IsClient && _localCharacter.Exists()
             ? _localCharacter
-            : (ConsoleShared.TryGetLocalCharacterInCurrentWorld(out _localCharacter, _clientWorld)
+            : (ConsoleShared.TryGetLocalCharacterInCurrentWorld(out _localCharacter, Game) && _localCharacter.Exists()
                 ? _localCharacter
-                : Entity.Null))
-        : Entity.Null;
+                : Entity.Null);
     public static Entity LocalUser =>
-        IsClient
-        ? (_localUser != Entity.Null
+        IsClient && _localUser.Exists()
             ? _localUser
-            : (ConsoleShared.TryGetLocalUserInCurrentWorld(out _localUser, _clientWorld)
+            : (ConsoleShared.TryGetLocalUserInCurrentWorld(out _localUser, Game) && _localUser.Exists()
                 ? _localUser
-                : Entity.Null))
-        : Entity.Null;
-    public static NetworkId LocalNetworkId => LocalUser.GetNetworkId();
+                : Entity.Null);
     static World? GetWorld(string name)
     {
         foreach (var world in World.s_AllWorlds)

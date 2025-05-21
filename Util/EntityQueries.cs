@@ -65,6 +65,8 @@ using Unity.Transforms;
 using static Bloodstone.Util.EntityQueries;
 
 namespace Bloodstone.Util;
+
+// performant but kinda hard to use correctly and querying for archetypes is not as straightforward as I would like, find for current use in PlayerService but need to think about more before recommending for wider use
 internal static class EntityQueries
 {
     static EntityManager EntityManager => VWorld.EntityManager;
@@ -131,7 +133,7 @@ internal static class EntityQueries
 
             foreach (var chunk in ArchetypeChunks)
             {
-                QueryResult[] results = null;
+                QueryResult[]? results = null;
 
                 try
                 {
@@ -187,12 +189,10 @@ internal static class EntityQueries
         ComponentType[] types = queryDesc.ComponentTypes;
         int[] indices = queryDesc.TypeIndices;
 
-        // Misc.Performance.Start("QueryResultStreamAsync");
         var chunks = entityQuery.CreateArchetypeChunkArrayAsync(Allocator.TempJob, out var handle);
 
         while (!handle.IsCompleted)
             yield return null;
-        // Misc.Performance.Stop();
 
         handle.Complete();
 
@@ -214,68 +214,12 @@ internal static class EntityQueries
 
         return default;
     }
-
-    /*
     public static QueryDesc CreateQueryDesc(
     this EntityManager entityManager,
     ComponentType[] allTypes,
-    ComponentType[] anyTypes = null,
-    ComponentType[] noneTypes = null,
-    int[] typeIndices = null,
-    EntityQueryOptions? options = default)
-    {
-        EntityQuery query;
-
-        if (noneTypes != null && options.HasValue)
-        {
-            query = BuildEntityQuery(entityManager, allTypes, noneTypes, options.Value);
-        }
-        else if (options.HasValue)
-        {
-            query = BuildEntityQuery(entityManager, allTypes, options.Value);
-        }
-        else
-        {
-            query = BuildEntityQuery(entityManager, allTypes);
-        }
-
-        typeIndices ??= GenerateDefaultIndices(allTypes.Length);
-
-        return new QueryDesc(query, allTypes, typeIndices);
-    }
-    public static QueryDesc CreateQueryDesc(
-    this EntityManager entityManager,
-    ComponentType[] allTypes,
-    ComponentType[] noneTypes = null,
-    int[] typeIndices = null,
-    EntityQueryOptions? options = default)
-    {
-        EntityQuery query;
-
-        if (noneTypes != null && options.HasValue)
-        {
-            query = BuildEntityQuery(entityManager, allTypes, noneTypes, options.Value);
-        }
-        else if (options.HasValue)
-        {
-            query = BuildEntityQuery(entityManager, allTypes, options.Value);
-        }
-        else
-        {
-            query = BuildEntityQuery(entityManager, allTypes);
-        }
-
-        typeIndices ??= GenerateDefaultIndices(allTypes.Length);
-
-        return new QueryDesc(query, allTypes, typeIndices);
-    }
-    */
-    public static QueryDesc CreateQueryDesc(
-    this EntityManager entityManager,
-    ComponentType[] allTypes,
-    ComponentType[] anyTypes = null,
-    ComponentType[] noneTypes = null,
-    int[] typeIndices = null,
+    ComponentType[]? anyTypes = null,
+    ComponentType[]? noneTypes = null,
+    int[]? typeIndices = null,
     EntityQueryOptions? options = default)
     {
         if (allTypes == null || allTypes.Length == 0)
@@ -307,74 +251,6 @@ internal static class EntityQueries
 
         return new QueryDesc(query, allTypes, typeIndices);
     }
-
-    /*
-    public static EntityQuery BuildEntityQuery(
-    EntityManager entityManager,
-    ComponentType[] all)
-    {
-        var builder = new EntityQueryBuilder(Allocator.Temp);
-
-        foreach (var componentType in all)
-            builder.AddAll(componentType);
-
-        return entityManager.CreateEntityQuery(ref builder);
-    }
-    public static EntityQuery BuildEntityQuery(
-    EntityManager entityManager,
-    ComponentType[] all,
-    EntityQueryOptions options)
-    {
-        var builder = new EntityQueryBuilder(Allocator.Temp);
-
-        foreach (var componentType in all)
-            builder.AddAll(componentType);
-
-        builder.WithOptions(options);
-
-        return entityManager.CreateEntityQuery(ref builder);
-    }
-    public static EntityQuery BuildEntityQuery(
-    EntityManager entityManager,
-    ComponentType[] all,
-    ComponentType[] none,
-    EntityQueryOptions options)
-    {
-        var builder = new EntityQueryBuilder(Allocator.Temp);
-
-        foreach (var componentType in all)
-            builder.AddAll(componentType);
-
-        foreach (var componentType in none)
-            builder.AddNone(componentType);
-
-        builder.WithOptions(options);
-
-        return entityManager.CreateEntityQuery(ref builder);
-    }
-    public static EntityQuery BuildEntityQuery(
-    EntityManager entityManager,
-    ComponentType[] all,
-    ComponentType[] any,
-    ComponentType[] none,
-    EntityQueryOptions options)
-    {
-        var builder = new EntityQueryBuilder(Allocator.Temp);
-
-        foreach (var componentType in all)
-            builder.AddAll(componentType);
-
-        foreach (var componentType in any)
-            builder.AddAny(componentType);
-
-        foreach (var componentType in none)
-            builder.AddNone(componentType);
-
-        builder.WithOptions(options);
-
-        return entityManager.CreateEntityQuery(ref builder);
-    }
-    */
     static int[] GenerateDefaultIndices(int length)
     {
         var indices = new int[length];
@@ -613,7 +489,6 @@ internal static class ComponentRegistry
         RegisterComponent<PreviewPlacementBuff>();
         RegisterComponent<PreviewPlacementSequence>();
         RegisterComponent<RemapAbilitySlotsForGamepadBuff>();
-        // RegisterComponent<ServerControlsPositionBuff>();
         RegisterComponent<ServerControlsPositionModifications>();
         RegisterComponent<SpawnSleepingBuff>();
         RegisterComponent<TravelBuffCollection>();
@@ -669,7 +544,6 @@ internal static class ComponentRegistry
         RegisterComponent<ApplyKnockbackOnGameplayEvent>();
         RegisterComponent<ChangeAbilityOnGameplayEvent>();
         RegisterComponent<ChangeBloodOnGameplayEvent>();
-        // RegisterComponent<ChangeEnergyOnGameplayEvent>();
         RegisterComponent<ClearAggroOnGameplayEvent>();
         RegisterComponent<ConsumeBuffOnGameplayEvent>();
         RegisterComponent<DestroyOnGameplayEvent>();
@@ -691,8 +565,6 @@ internal static class ComponentRegistry
         RegisterComponent<SpawnMinionOnGameplayEvent>();
         RegisterComponent<SpawnPrefabOnGameplayEvent>();
         RegisterComponent<StopSpellMovementOnGameplayEvent>();
-        // RegisterComponent<TriggerCounterOnGameplayEvent>();
-        // RegisterComponent<CounterTriggerEvent>();
         RegisterComponent<TriggerHitConsume>();
         RegisterComponent<UnlockTrophyOnGameplayEvent>();
         RegisterComponent<YieldResourceDisable>();
@@ -871,7 +743,6 @@ internal static class ComponentRegistry
         RegisterComponent<SpawnPrefabOnDestroy>();
         RegisterComponent<CopySpellModSetFromAbilitySlot>();
         RegisterComponent<JewelChanged>();
-        // RegisterComponent<LegendaryItemChanged>();
         RegisterComponent<JewelSpawnSystemData>();
         RegisterComponent<JewelSpawnSystem.ManuallyGeneratedLegendaryItem>();
         RegisterComponent<SpellModAbilityGroupCharges>();
@@ -924,7 +795,6 @@ internal static class ComponentRegistry
         RegisterComponent<MusicPlayer_Shared>();
         RegisterComponent<MusicPlayerStation_PlaylistElement>();
         RegisterComponent<MusicPlayerStation_UnlockedTrackElement>();
-        // RegisterComponent<MusicPlayerStation_Client>();
         RegisterComponent<MusicPlayerStationTrack_Shared>();
         RegisterComponent<MusicPlayerStationTrack_Client>();
         RegisterComponent<BannedEvent.Request0>();
@@ -1009,7 +879,6 @@ internal static class ComponentRegistry
         RegisterComponent<StaticHierarchyBuffer>();
         RegisterComponent<StaticHierarchyData>();
         RegisterComponent<AssetSubSceneStreamingHandler_Initialized>();
-        // RegisterComponent<IsEditingTileModel>();
         RegisterComponent<ShowBuildGrid>();
         RegisterComponent<ShowBuildGridSystem.ShowBuildGridActive>();
         RegisterComponent<ShowTileCollision2D>();
@@ -1053,7 +922,6 @@ internal static class ComponentRegistry
         RegisterComponent<ShaderProperty_TreeParams1>();
         RegisterComponent<RestrictPlacementArea>();
         RegisterComponent<SnappingPoint>();
-        // RegisterComponent<SnappingPointClosestTo>();
         RegisterComponent<SnappingPointCollider>();
         RegisterComponent<IsChildTileModelBakingData>();
         RegisterComponent<NetworkedPrefabChildren>();
@@ -1213,7 +1081,6 @@ internal static class ComponentRegistry
         RegisterComponent<CastleRebuildPhaseSequence>();
         RegisterComponent<CastleRebuildSettings>();
         RegisterComponent<CastleRoom>();
-        // RegisterComponent<CastleRoof>();
         RegisterComponent<CastleRoofOrnaments>();
         RegisterComponent<CastleRoomFloorsBuffer>();
         RegisterComponent<CastleRoomWallsBuffer>();
@@ -1227,12 +1094,7 @@ internal static class ComponentRegistry
         RegisterComponent<WallRoofOrnament>();
         RegisterComponent<TileModelEventsBarrier.Singleton>();
         RegisterComponent<DyeableCastleObject>();
-        // RegisterComponent<DyeColorSetupFlagBuffer>();
-        // RegisterComponent<DyeColorSetupFlagOffsetBuffer>();
-        // RegisterComponent<SetupFlagBuffer>();
-        // RegisterComponent<MeshDyeBuffer>();
         RegisterComponent<ProxyEntityBuffer>();
-        // RegisterComponent<HybridDyeableTag>();
         RegisterComponent<CastleRebuildRegistry>();
         RegisterComponent<CastleRebuildRegistry_Server>();
         RegisterComponent<CastleRebuildTransferInitializeEvent>();
@@ -2078,7 +1940,6 @@ internal static class ComponentRegistry
         RegisterComponent<SpellSchoolPassive>();
         RegisterComponent<AbilitySpellSchool>();
         RegisterComponent<Passive>();
-        // RegisterComponent<PassiveBuffer>();
         RegisterComponent<SpellSchoolPassiveStation>();
         RegisterComponent<LearnablePassivesBuffer>();
         RegisterComponent<StatChangeEventCallback>();
@@ -3236,7 +3097,6 @@ internal static class ComponentRegistry
         RegisterComponent<ChunkWorldRenderBounds>();
         RegisterComponent<MaterialMeshInfo>();
         RegisterComponent<SkinnedMeshRendererBakingData>();
-        // RegisterComponent<LODOverride>();
         RegisterComponent<DestroyAfterLifetimeTag_Client>();
         RegisterComponent<DebugStruct>();
         RegisterComponent<NetworkSyncDebugEnabled>();
@@ -3302,7 +3162,6 @@ internal static class ComponentRegistry
         RegisterComponent<RequestEntityPrefabLoaded>();
         RegisterComponent<WeakAssetPrefabLoadRequest>();
         RegisterComponent<WeakAssetReferenceLoadingData>();
-        // RegisterComponent<FreezeCameraMouseTracking>();
         RegisterComponent<AdaptiveTriggerCollection>();
         RegisterComponent<TriggerEffectData>();
         RegisterComponent<AdaptiveTriggerEvent>();
@@ -3343,4 +3202,5 @@ internal static class ComponentRegistry
         _initialized = true;
     }
 }
+
 

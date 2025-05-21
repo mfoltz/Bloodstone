@@ -16,7 +16,7 @@ using UnityEngine.Events;
 using static Bloodstone.API.Client.LocalizationKeyManager;
 using static Bloodstone.API.Client.OptionsManager;
 
-namespace Bloodstone.Patches;
+namespace Bloodstone.Patches.Client;
 internal static class OptionsMenuPatches
 {
     static Harmony? _harmony;

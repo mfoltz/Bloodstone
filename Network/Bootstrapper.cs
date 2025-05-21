@@ -1,6 +1,8 @@
 ﻿using Bloodstone.API.Shared;
+using Il2CppInterop.Runtime;
 using ProjectM;
 using ProjectM.Network;
+using System;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -10,7 +12,6 @@ internal static class Bootstrapper
     static EntityManager EntityManager => VWorld.EntityManager;
     static bool _initialized;
 
-    /*
     static readonly ComponentType[] _componentTypes =
     {
         ComponentType.ReadOnly(Il2CppType.Of<FromCharacter>()),
@@ -25,7 +26,6 @@ internal static class Bootstrapper
         EventId = NetworkEvents.EventId_ChatMessageEvent,
         IsDebugEvent = false,
     };
-    */
     public static void Initialize()
     {
         if (_initialized) return;
@@ -40,9 +40,15 @@ internal static class Bootstrapper
     }
     static void ClientPacketRelay()
     {
-        PacketRelay._sendClientPacket = packet =>
+        PacketRelay._sendClientPacket = (user, packet) =>
         {
-            /*
+            if (!VWorld.LocalCharacter.Exists() || !VWorld.LocalUser.Exists())
+            {
+                VWorld.Log.LogWarning($"[PacketRelay] LocalCharacter or LocalUser does not exist yet!");
+            }
+
+            VWorld.Log.LogWarning($"[PacketRelay] Sending packet to server ({DateTime.Now.TimeOfDay})");
+
             ChatMessageEvent chatMessageEvent = new()
             {
                 MessageText = new FixedString512Bytes(packet),
@@ -54,15 +60,13 @@ internal static class Bootstrapper
             networkEntity.Write(new FromCharacter { Character = VWorld.LocalCharacter, User = VWorld.LocalUser });
             networkEntity.Write(_eventType);
             networkEntity.Write(chatMessageEvent);
-            */
-
-            ClientSystemChatUtils.AddLocalMessage(EntityManager, packet, ServerChatMessageType.Local);
         };
     }
     static void ServerPacketRelay()
     {
         PacketRelay._sendServerPacket = (user, packet) =>
         {
+            VWorld.Log.LogWarning($"[PacketRelay] Sending packet to client ({DateTime.Now.TimeOfDay})");
             FixedString512Bytes fixedPacket = new(packet);
             ServerChatUtils.SendSystemMessageToClient(EntityManager, user, ref fixedPacket);
         };

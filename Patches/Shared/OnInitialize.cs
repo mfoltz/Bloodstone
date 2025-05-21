@@ -1,11 +1,13 @@
 using BepInEx.Unity.IL2CPP;
+using Bloodstone.API.Server;
+using Bloodstone.API.Shared;
+using Bloodstone.Network;
+using Bloodstone.Services;
 using HarmonyLib;
 using ProjectM;
 using Stunlock.Core;
-using Bloodstone.API.Client;
-using Bloodstone.API.Shared;
 
-namespace Bloodstone.Patches;
+namespace Bloodstone.Patches.Shared;
 
 /// <summary>
 /// Hook responsible for handling calls to IRunOnInitialized.
@@ -49,22 +51,30 @@ static class OnInitialize
     }
 
     // these are intentionally different classes, even if their bodies _currently_ are the same
-    private static class ServerDetours
+    static class ServerDetours
     {
         [HarmonyPatch(typeof(GameBootstrap), nameof(GameBootstrap.Start))]
         [HarmonyPostfix]
         public static void Initialize()
         {
+            Bootstrapper.Initialize();
+            VEvents.Initialize();
+            PlayerService.Initialize();
+            // NetworkTesting.PingPong();
+
             InvokePlugins();
         }
     }
-
-    private static class ClientDetours
+    static class ClientDetours
     {
         [HarmonyPatch(typeof(WorldBootstrapUtilities), nameof(WorldBootstrapUtilities.AddSystemsToWorld))]
         [HarmonyPostfix]
         public static void Initialize()
         {
+            Bootstrapper.Initialize();
+            // NetworkTesting.PingPong();
+            // NetworkTesting._ready = true;
+
             InvokePlugins();
         }
     }

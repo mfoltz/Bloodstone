@@ -4,8 +4,10 @@ using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Bloodstone.API.Shared;
 using Bloodstone.Network;
-using Bloodstone.Patches;
+using Bloodstone.Patches.Client;
+using Bloodstone.Patches.Shared;
 using Bloodstone.Util;
+using System;
 
 namespace Bloodstone
 {
@@ -32,6 +34,9 @@ namespace Bloodstone
         }
         public override void Load()
         {
+            // for unicode characters and handling non-blittable types over network
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+
             // Hooks
             if (VWorld.IsServer)
             {
@@ -47,8 +52,7 @@ namespace Bloodstone
             }
 
             OnInitialize.Initialize();
-            Patches.GameFrame.Initialize();
-            Bootstrapper.Initialize();
+            GameFrame.Initialize();
 
             Logger.LogInfo($"Bloodstone v{MyPluginInfo.PLUGIN_VERSION} loaded.");
 
@@ -75,9 +79,10 @@ namespace Bloodstone
             }
 
             OnInitialize.Uninitialize();
-            Patches.GameFrame.Uninitialize();
+            GameFrame.Uninitialize();
 
             return true;
         }
+
     }
 }

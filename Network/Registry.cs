@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Bloodstone.API.Shared;
+using ProjectM.Network;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using static Bloodstone.Network.Serialization;
@@ -20,15 +22,23 @@ internal static class Registry
         public const int SAFE_PAYLOAD_BYTES = MAX_CHAT_BYTES - HEADER_RESERVE;
         public const string SHARED_KEY = MyPluginInfo.PLUGIN_VERSION;
     }
-    public record Handler(Direction Dir, Action<object> Invoke, UnpackDelHandler Unpack);
-    static readonly ConcurrentDictionary<uint, Handler> _handlers = new();
-    public static void Register(Type type, Direction direction, Action<object> action)
+    public record Handler(Direction Dir,
+        Action<User, object> Invoke,
+        UnpackDelHandler Unpack); static readonly ConcurrentDictionary<uint, Handler> _handlers = new();
+    public static void Register<T>(Direction direction, Action<User, object> action)
     {
+        Type type = typeof(T);
+        VWorld.Log.LogWarning($"[Register] Registering -> {type.Name} w/ {direction}");
         uint id = Hash32(type.FullName!);
         UnpackDelHandler unpacker = GetUnpacker(type);
         _handlers[id] = new Handler(direction, action, unpacker);
     }
-    public static bool TryGet(uint id, out Handler handler)
+    public static void Unregister<T>()
+    {
+        uint id = Hash32(typeof(T).FullName!);
+        _handlers.TryRemove(id, out _);
+    }
+    public static bool TryGet(uint id, out Handler? handler)
         => _handlers.TryGetValue(id, out handler);
     public static IEnumerable<KeyValuePair<uint, Handler>> All => _handlers;
     public static uint Hash32(string s)

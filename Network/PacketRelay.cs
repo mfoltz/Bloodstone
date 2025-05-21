@@ -4,13 +4,10 @@ using System;
 namespace Bloodstone.Network;
 internal static class PacketRelay
 {
-    public static event Action<string>? OnPacketReceivedHandler;
-    public static void OnClientPacketReceived(string packet) => OnPacketReceivedHandler?.Invoke(packet);
-    public static void OnServerPacketReceived(string packet) => OnPacketReceivedHandler?.Invoke(packet);
+    public static event Action<User, string>? OnPacketReceivedHandler;
+    public static void OnClientPacketReceived(User sender, string packet) => OnPacketReceivedHandler?.Invoke(sender, packet);
+    public static void OnServerPacketReceived(User sender, string packet) => OnPacketReceivedHandler?.Invoke(sender, packet);
 
-    // Packets from Client will always be from the local user
-    public static Action<string> _sendClientPacket = packet => throw new InvalidOperationException("PacketRelay.SendClientPacket isn't bootstrapped, only use this from the client!");
-
-    // Packets from Server need to be sent to specific users
-    public static Action<User, string> _sendServerPacket = (user, packet) => throw new InvalidOperationException("PacketRelay.SendServerPacket isn't bootstrapped, only use this from the server!");
+    public static Action<User, string> _sendClientPacket = (_, _) => throw new InvalidOperationException("PacketRelay.SendClientPacket isn't bootstrapped, only use this from the client!");
+    public static Action<User, string> _sendServerPacket = (_, _) => throw new InvalidOperationException("PacketRelay.SendServerPacket isn't bootstrapped, only use this from the server!");
 }

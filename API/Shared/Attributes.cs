@@ -7,9 +7,3 @@ public class ReloadableAttribute : Attribute
 {
 
 }
-
-[AttributeUsage(AttributeTargets.Method)]
-public class EventHandlerAttribute : Attribute
-{
-
-}

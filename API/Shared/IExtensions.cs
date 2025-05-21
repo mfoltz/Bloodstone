@@ -1,4 +1,6 @@
-﻿using System;
+﻿using BepInEx.Unity.IL2CPP.Utils;
+using BepInEx.Unity.IL2CPP.Utils.Collections;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -61,6 +63,6 @@ public static class IExtensions
     }
     public static void Run(this IEnumerator routine)
     {
-        GameFrame.StartCoroutine(routine);
+        GameFrame.RunCoroutine(routine);
     }
 }

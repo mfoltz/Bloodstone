@@ -40,12 +40,24 @@ internal static class InputActionSystemPatch
     [HarmonyPrefix]
     static void OnUpdatePrefix()
     {
+        foreach (var kvp in KeybindManager.Categories.Values)
+        {
+            foreach (Keybinding keybind in kvp.Values)
+            {
+                if (IsKeybindDown(keybind)) keybind.KeyDown();
+                if (IsKeybindUp(keybind)) keybind.KeyUp();
+                if (IsKeybindPressed(keybind)) keybind.KeyPressed();
+            }
+        }
+
+        /*
         foreach (Keybinding keybind in KeybindManager.Keybinds.Values)
         {
             if (IsKeybindDown(keybind)) keybind.KeyDown();
             if (IsKeybindUp(keybind)) keybind.KeyUp();
             if (IsKeybindPressed(keybind)) keybind.KeyPressed();
         }
+        */
     }
     static bool IsKeybindDown(Keybinding keybind)
     {

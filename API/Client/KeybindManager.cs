@@ -1,5 +1,6 @@
 ﻿using Bloodstone.Util;
 using ProjectM;
+using Stunlock.Localization;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,8 +9,13 @@ using UnityEngine;
 namespace Bloodstone.API.Client;
 public static class KeybindManager
 {
+    public static IReadOnlyDictionary<LocalizationKey, Dictionary<string, Keybinding>> Categories => _categories;
+    static readonly Dictionary<LocalizationKey, Dictionary<string, Keybinding>> _categories = [];
     public static IReadOnlyDictionary<string, Keybinding> Keybinds => _keybinds;
     static readonly Dictionary<string, Keybinding> _keybinds = [];
+
+    static readonly Dictionary<string, LocalizationKey> _categoryKeys = [];
+    static readonly HashSet<string> _categoryHeaders = [];
 
     const ulong HASH_LONG = 14695981039346656037UL;
     const uint HASH_INT = 2166136261U;
@@ -71,6 +77,46 @@ public static class KeybindManager
     };
     public static Keybinding Register(string name, string description, string category, KeyCode defaultKey)
     {
+        if (!_categoryHeaders.Contains(category) && !_categoryKeys.TryGetValue(category, out var localizationKey))
+        {
+            localizationKey = LocalizationKeyManager.GetLocalizationKey(category);
+            _categoryKeys[category] = localizationKey;
+            _categoryHeaders.Add(category);
+            _categories[localizationKey] = [];
+        }
+        else
+        {
+            localizationKey = _categoryKeys[category];
+        }
+
+        var keybinds = _categories[localizationKey];
+
+        if (_keybinds.TryGetValue(name, out var existing))
+        {
+            return existing;
+        }
+
+        var keybind = new Keybinding(name, description, category, defaultKey);
+        keybinds[name] = keybind;
+        _keybinds[name] = keybind;
+
+        return keybind;
+    }
+
+    /*
+    public static Keybinding Register(string name, string description, string category, KeyCode defaultKey)
+    {
+        var keybinds = [];
+
+        if (!_categoryHeaders.Contains(category) && !_categoryKeys.TryGetValue(category, out var localizationKey))
+        {
+            localizationKey = LocalizationKeyManager.GetLocalizationKey(category);
+            _categories[localizationKey] = [];
+
+        }
+
+        var keybinds = _categories[localizationKey];
+
         if (_keybinds.TryGetValue(name, out var existing))
         {
             // Core.Log.LogInfo($"[KeybindsManager] Skipped duplicate keybind registration: {name}");
@@ -78,10 +124,11 @@ public static class KeybindManager
         }
 
         var keybind = new Keybinding(name, description, category, defaultKey);
-        _keybinds[name] = keybind;
+        keybinds[name] = keybind;
 
         return keybind;
     }
+    */
     public static void Rebind(Keybinding keybind, KeyCode newKey)
     {
         keybind.Primary = newKey;

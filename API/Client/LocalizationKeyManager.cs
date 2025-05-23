@@ -8,17 +8,20 @@ using Guid = Il2CppSystem.Guid;
 namespace Bloodstone.API.Client;
 public static class LocalizationKeyManager
 {
-    const string KEYBINDS_HEADER = MyPluginInfo.PLUGIN_NAME;
-    public static LocalizationKey _sectionHeader;
-
-    // public static IReadOnlyDictionary<string, LocalizationKey> SectionHeaders => _sectionHeaders;
-    // static readonly Dictionary<string, LocalizationKey> _sectionHeaders = [];
+    public static IReadOnlyDictionary<string, LocalizationKey> CategoryHeaders => _categoryHeaders;
+    static readonly Dictionary<string, LocalizationKey> _categoryHeaders = [];
     public static IReadOnlyDictionary<AssetGuid, string> AssetGuids => _assetGuids;
     static readonly Dictionary<AssetGuid, string> _assetGuids = [];
+    public static void LocalizeCategoryHeader(string categoryHeader)
+    {
+        if (!_categoryHeaders.TryGetValue(categoryHeader, out var localizationKey))
+        {
+            localizationKey = GetLocalizationKey(categoryHeader);
+            _categoryHeaders[categoryHeader] = localizationKey;
+        }
+    }
     public static void LocalizeText()
     {
-        _sectionHeader = GetLocalizationKey(KEYBINDS_HEADER);
-
         foreach (var keyValuePair in AssetGuids)
         {
             AssetGuid assetGuid = keyValuePair.Key;

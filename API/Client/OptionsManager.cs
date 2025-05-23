@@ -1,4 +1,5 @@
 ﻿using Bloodstone.API.Shared;
+using Stunlock.Localization;
 using System;
 using System.Collections.Generic;
 
@@ -17,12 +18,15 @@ internal static class OptionsManager
         public OptionItemType Type { get; } = type;
         public string Key { get; } = key;
     }
-
-    static readonly Dictionary<string, MenuOption> _options = [];
+    public static IReadOnlyDictionary<LocalizationKey, List<OptionEntry>> CategoryEntries => _categoryEntries;
+    static readonly Dictionary<LocalizationKey, List<OptionEntry>> _categoryEntries = [];
     public static IReadOnlyDictionary<string, MenuOption> Options => _options;
-
-    static readonly List<OptionEntry> _orderedEntries = [];
+    static readonly Dictionary<string, MenuOption> _options = [];
+    public static IReadOnlyDictionary<string, LocalizationKey> CategoryKeys => _categoryKeys;
+    static readonly Dictionary<string, LocalizationKey> _categoryKeys = [];
+    static readonly HashSet<string> _categoryHeaders = [];
     public static IReadOnlyList<OptionEntry> OrderedEntries => _orderedEntries;
+    static readonly List<OptionEntry> _orderedEntries = [];
     public static Toggle AddToggle(string name, string description, bool defaultValue)
     {
         var toggle = new Toggle(name, description, defaultValue);
@@ -48,7 +52,29 @@ internal static class OptionsManager
     {
         _orderedEntries.Add(new(OptionItemType.Divider, label));
     }
-    public static bool TryGetOption(OptionEntry entry, out MenuOption option)
+    static void RegisterOption(string category, string name, MenuOption option, OptionItemType type)
+    {
+        var localizationKey = LocalizeOptionHeader(category);
+        _options[name] = option;
+        _categoryEntries[localizationKey].Add(new OptionEntry(type, name));
+    }
+    static LocalizationKey LocalizeOptionHeader(string category)
+    {
+        if (!_categoryHeaders.Contains(category) && !_categoryKeys.TryGetValue(category, out var localizationKey))
+        {
+            localizationKey = LocalizationKeyManager.GetLocalizationKey(category);
+            _categoryKeys[category] = localizationKey;
+            _categoryHeaders.Add(category);
+            _categoryEntries[localizationKey] = [];
+        }
+        else
+        {
+            localizationKey = _categoryKeys[category];
+        }
+
+        return localizationKey;
+    }
+    public static bool TryGetOption(OptionEntry entry, out MenuOption? option)
     {
         option = null;
 
@@ -72,10 +98,10 @@ internal static class OptionsManager
             return false;
         }
 
-        option = (MenuOption)raw;
+        option = raw;
         return true;
     }
-    static Type GetValueType(OptionItemType type) => type switch
+    static Type? GetValueType(OptionItemType type) => type switch
     {
         OptionItemType.Toggle => typeof(bool),
         OptionItemType.Slider => typeof(float),

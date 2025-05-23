@@ -5,8 +5,6 @@ using Unity.Entities;
 using UnityEngine;
 
 namespace Bloodstone.Network;
-
-/*
 internal readonly struct Ping(long ticks)
 {
     public readonly long ClientTicks = ticks;
@@ -45,7 +43,7 @@ internal static class NetworkTesting
             yield return null;
         }
 
-        yield return _delay; // lazy way to do this but just wanted to test real quick >_>
+        // yield return _delay; // lazy way to do this but just wanted to test real quick >_>
 
         VNetwork.RegisterClientbound<Pong>((sender, pong) =>
         {
@@ -59,4 +57,4 @@ internal static class NetworkTesting
         VNetwork.SendToServer(new Ping(DateTime.UtcNow.Ticks));
     }
 }
-*/
+

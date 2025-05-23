@@ -34,9 +34,6 @@ namespace Bloodstone
         }
         public override void Load()
         {
-            // for unicode characters and handling non-blittable types over network
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
-
             // Hooks
             if (VWorld.IsServer)
             {
@@ -46,6 +43,7 @@ namespace Bloodstone
             if (VWorld.IsClient)
             {
                 Persistence.LoadKeybinds();
+                Persistence.LoadOptions();
                 ChatMessageSystemClientPatch.Initialize();
                 InputActionSystemPatch.Initialize();
                 OptionsMenuPatches.Initialize();

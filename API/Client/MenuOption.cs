@@ -38,7 +38,7 @@ public abstract class MenuOption<T> : MenuOption
     public virtual T Value { get; set; }
     public T DefaultValue { get; set; }
 
-    public event OptionChangedHandler<T> OnOptionChanged = delegate { };
+    public event OptionChangedHandler<T> OnOptionChangedHandler = delegate { };
     protected MenuOption() : base() { }
     protected MenuOption(string name, string description, T defaultValue)
         : base(name, description)
@@ -49,9 +49,9 @@ public abstract class MenuOption<T> : MenuOption
     public virtual void SetValue(T value)
     {
         Value = value;
-        OnOptionChanged(value);
+        OnOptionChangedHandler(value);
     }
-    public void AddListener(OptionChangedHandler<T> listener) => OnOptionChanged += listener;
+    public void AddListener(OptionChangedHandler<T> listener) => OnOptionChangedHandler += listener;
     public override void ApplyDefault() => SetValue(DefaultValue);
     public override void ApplySaved(MenuOption other)
     {

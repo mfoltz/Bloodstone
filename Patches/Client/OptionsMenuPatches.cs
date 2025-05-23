@@ -56,84 +56,87 @@ internal static class OptionsMenuPatches
             VWorld.Log.LogError($"[OptionsPanel_Interface.Start] Failed to localize keys - {ex.Message}");
         }
 
-        __instance.AddHeader(_sectionHeader);
-
-        foreach (var entry in OrderedEntries)
+        foreach (var menuOptions in CategoryEntries)
         {
-            try
+            __instance.AddHeader(menuOptions.Key);
+
+            foreach (var entry in OrderedEntries)
             {
-                switch (entry.Type)
+                try
                 {
-                    case OptionItemType.Toggle:
-                        if (!TryGetOption(entry, out var toggleOption)) continue;
+                    switch (entry.Type)
+                    {
+                        case OptionItemType.Toggle:
+                            if (!TryGetOption(entry, out var toggleOption)) continue;
 
-                        Toggle toggle = toggleOption as Toggle;
-                        var toggleEntry = UIHelper.InstantiatePrefabUnderAnchor(__instance.CheckboxPrefab, __instance.ContentNode);
-                        
-                        toggleEntry.Initialize(
-                            toggle.NameKey,
-                            new Il2CppSystem.Nullable_Unboxed<LocalizationKey>(toggle.DescKey),
-                            toggle.DefaultValue,
-                            toggle.Value,
-                            OnChange(toggle)
-                        );
+                            Toggle toggle = toggleOption as Toggle;
+                            var toggleEntry = UIHelper.InstantiatePrefabUnderAnchor(__instance.CheckboxPrefab, __instance.ContentNode);
 
-                        SettingsEntryBase toggleBase = toggleEntry;
-                        __instance.EntriesSelectionGroup.AddEntry(ref toggleBase, true);
-                        break;
-                    case OptionItemType.Slider:
-                        if (!TryGetOption(entry, out var sliderOption)) continue;
+                            toggleEntry.Initialize(
+                                toggle.NameKey,
+                                new Il2CppSystem.Nullable_Unboxed<LocalizationKey>(toggle.DescKey),
+                                toggle.DefaultValue,
+                                toggle.Value,
+                                OnChange(toggle)
+                            );
 
-                        Slider slider = sliderOption as Slider;
-                        var sliderEntry = UIHelper.InstantiatePrefabUnderAnchor(__instance.SliderPrefab, __instance.ContentNode);
-                        
-                        sliderEntry.Initialize(
-                            slider.NameKey,
-                            new Il2CppSystem.Nullable_Unboxed<LocalizationKey>(slider.DescKey),
-                            slider.MinValue,
-                            slider.MaxValue,
-                            slider.DefaultValue,
-                            slider.Value,
-                            slider.Decimals,
-                            slider.Decimals == 0,
-                            OnChange(slider),
-                            fixedStepValue: slider.StepValue
-                        );
+                            SettingsEntryBase toggleBase = toggleEntry;
+                            __instance.EntriesSelectionGroup.AddEntry(ref toggleBase, true);
+                            break;
+                        case OptionItemType.Slider:
+                            if (!TryGetOption(entry, out var sliderOption)) continue;
 
-                        SettingsEntryBase sliderBase = sliderEntry;
-                        __instance.EntriesSelectionGroup.AddEntry(ref sliderBase, true);
-                        break;
-                    case OptionItemType.Dropdown:
-                        if (!TryGetOption(entry, out var dropdownOption)) continue;
+                            Slider slider = sliderOption as Slider;
+                            var sliderEntry = UIHelper.InstantiatePrefabUnderAnchor(__instance.SliderPrefab, __instance.ContentNode);
 
-                        Dropdown dropdown = dropdownOption as Dropdown;
-                        var dropdownEntry = UIHelper.InstantiatePrefabUnderAnchor(__instance.DropdownPrefab, __instance.ContentNode);
-                        var dropdownOptions = new Il2CppSystem.Collections.Generic.List<string>(dropdown.Values.Count);
-                        
-                        foreach (var value in dropdown.Values)
-                            dropdownOptions.Add(value);
+                            sliderEntry.Initialize(
+                                slider.NameKey,
+                                new Il2CppSystem.Nullable_Unboxed<LocalizationKey>(slider.DescKey),
+                                slider.MinValue,
+                                slider.MaxValue,
+                                slider.DefaultValue,
+                                slider.Value,
+                                slider.Decimals,
+                                slider.Decimals == 0,
+                                OnChange(slider),
+                                fixedStepValue: slider.StepValue
+                            );
 
-                        dropdownEntry.Initialize(
-                            dropdown.NameKey,
-                            new Il2CppSystem.Nullable_Unboxed<LocalizationKey>(dropdown.DescKey),
-                            new Il2CppReferenceArray<LocalizedKeyValue>([]),
-                            dropdownOptions,
-                            dropdown.DefaultValue,
-                            dropdown.Value,
-                            OnChange(dropdown)
-                        );
+                            SettingsEntryBase sliderBase = sliderEntry;
+                            __instance.EntriesSelectionGroup.AddEntry(ref sliderBase, true);
+                            break;
+                        case OptionItemType.Dropdown:
+                            if (!TryGetOption(entry, out var dropdownOption)) continue;
 
-                        SettingsEntryBase dropdownBase = dropdownEntry;
-                        __instance.EntriesSelectionGroup.AddEntry(ref dropdownBase);
-                        break;
-                    case OptionItemType.Divider:
-                        CreateDivider(__instance.ContentNode, entry.Key);
-                        break;
+                            Dropdown dropdown = dropdownOption as Dropdown;
+                            var dropdownEntry = UIHelper.InstantiatePrefabUnderAnchor(__instance.DropdownPrefab, __instance.ContentNode);
+                            var dropdownOptions = new Il2CppSystem.Collections.Generic.List<string>(dropdown.Values.Count);
+
+                            foreach (var value in dropdown.Values)
+                                dropdownOptions.Add(value);
+
+                            dropdownEntry.Initialize(
+                                dropdown.NameKey,
+                                new Il2CppSystem.Nullable_Unboxed<LocalizationKey>(dropdown.DescKey),
+                                new Il2CppReferenceArray<LocalizedKeyValue>([]),
+                                dropdownOptions,
+                                dropdown.DefaultValue,
+                                dropdown.Value,
+                                OnChange(dropdown)
+                            );
+
+                            SettingsEntryBase dropdownBase = dropdownEntry;
+                            __instance.EntriesSelectionGroup.AddEntry(ref dropdownBase);
+                            break;
+                        case OptionItemType.Divider:
+                            CreateDivider(__instance.ContentNode, entry.Key);
+                            break;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                VWorld.Log.LogError($"Failed to create option {entry.Key} - {ex.Message}");
+                catch (Exception ex)
+                {
+                    VWorld.Log.LogError($"Failed to create option {entry.Key} - {ex.Message}");
+                }
             }
         }
     }
@@ -147,32 +150,36 @@ internal static class OptionsMenuPatches
             return;
         }
 
-        __instance.AddHeader(_sectionHeader);
-
-        foreach (Keybinding keybind in KeybindManager.Keybinds.Values)
+        foreach (var keybindCategories in KeybindManager.Categories)
         {
-            SettingsEntry_Binding settingsEntryBinding = UIHelper.InstantiatePrefabUnderAnchor(__instance.ControlsInputEntryPrefab, __instance.ContentNode);
+            __instance.AddHeader(keybindCategories.Key);
 
-            settingsEntryBinding.Initialize(
-                ControllerType.KeyboardAndMouse,
-                keybind.InputFlag,
-                AnalogInputAction.None,
-                true,
-                false,
-                true,
-                onClick: (Il2CppSystem.Action<SettingsEntry_Binding, bool, ButtonInputAction, AnalogInputAction, bool>)__instance.OnEntryButtonClicked,
-                onClear: (Il2CppSystem.Action<SettingsEntry_Binding, ButtonInputAction>)__instance.OnEntryCleared,
-                true
-            );
+            foreach (var keybinds in keybindCategories.Value)
+            {
+                Keybinding keybind = keybinds.Value;
+                SettingsEntry_Binding settingsEntryBinding = UIHelper.InstantiatePrefabUnderAnchor(__instance.ControlsInputEntryPrefab, __instance.ContentNode);
 
-            settingsEntryBinding.SetInputInfo(keybind.NameKey, keybind.DescriptionKey);
-            settingsEntryBinding.SetPrimary(keybind.PrimaryName);
+                settingsEntryBinding.Initialize(
+                    ControllerType.KeyboardAndMouse,
+                    keybind.InputFlag,
+                    AnalogInputAction.None,
+                    true,
+                    false,
+                    true,
+                    onClick: (Il2CppSystem.Action<SettingsEntry_Binding, bool, ButtonInputAction, AnalogInputAction, bool>)__instance.OnEntryButtonClicked,
+                    onClear: (Il2CppSystem.Action<SettingsEntry_Binding, ButtonInputAction>)__instance.OnEntryCleared,
+                    true
+                );
 
-            settingsEntryBinding.PrimaryButton.onClick.AddListener((UnityAction)(() => RefreshKeybind(__instance, settingsEntryBinding, keybind).Run()));
-            settingsEntryBinding.SecondaryButton.gameObject.SetActive(false);
+                settingsEntryBinding.SetInputInfo(keybind.NameKey, keybind.DescriptionKey);
+                settingsEntryBinding.SetPrimary(keybind.PrimaryName);
 
-            SettingsEntryBase settingsEntryBase = settingsEntryBinding;
-            __instance.EntriesSelectionGroup.AddEntry(ref settingsEntryBase);
+                settingsEntryBinding.PrimaryButton.onClick.AddListener((UnityAction)(() => RefreshKeybind(__instance, settingsEntryBinding, keybind).Run()));
+                settingsEntryBinding.SecondaryButton.gameObject.SetActive(false);
+
+                SettingsEntryBase settingsEntryBase = settingsEntryBinding;
+                __instance.EntriesSelectionGroup.AddEntry(ref settingsEntryBase);
+            }
         }
     }
     static IEnumerator RefreshKeybind(RebindingMenu __instance, SettingsEntry_Binding binding, Keybinding keybind)

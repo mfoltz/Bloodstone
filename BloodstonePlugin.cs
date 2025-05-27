@@ -42,8 +42,8 @@ namespace Bloodstone
 
             if (VWorld.IsClient)
             {
-                Persistence.LoadKeybinds();
-                Persistence.LoadOptions();
+                // Persistence.LoadKeybinds();
+                // Persistence.LoadOptions();
                 ChatMessageSystemClientPatch.Initialize();
                 InputActionSystemPatch.Initialize();
                 OptionsMenuPatches.Initialize();

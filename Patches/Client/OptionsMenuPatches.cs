@@ -49,7 +49,6 @@ internal static class OptionsMenuPatches
         try
         {
             LocalizeText();
-            // VWorld.Log.LogWarning("[OptionsPanel_Interface.Start] Keys localized successfully!");
         }
         catch (Exception ex)
         {
@@ -148,6 +147,15 @@ internal static class OptionsMenuPatches
         if (__instance._BindingTypeToDisplay != ControllerType.KeyboardAndMouse)
         {
             return;
+        }
+
+        try
+        {
+            LocalizeText();
+        }
+        catch (Exception ex)
+        {
+            VWorld.Log.LogError($"[OptionsPanel_Interface.Start] Failed to localize keys - {ex.Message}");
         }
 
         foreach (var keybindCategories in KeybindManager.Categories)

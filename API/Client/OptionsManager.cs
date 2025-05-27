@@ -30,30 +30,35 @@ public static class OptionsManager
     static readonly HashSet<string> _categoryHeaders = [];
     public static IReadOnlyList<OptionEntry> OrderedEntries => _orderedEntries;
     static readonly List<OptionEntry> _orderedEntries = [];
-    public static Toggle AddToggle(string category, string name, string description, bool defaultValue)
+    public static Toggle AddToggle(string name, string description, string category, bool defaultValue)
     {
         var toggle = new Toggle(name, description, category, defaultValue);
-        RegisterOption(category, name, toggle, OptionItemType.Toggle);
+        RegisterOption(name, category, toggle, OptionItemType.Toggle);
         return toggle;
     }
-    public static Slider AddSlider(string category, string name, string description, float min, float max, float defaultVal, int decimals = 0, float step = 0)
+    public static Slider AddSlider(string name, string description, string category, float min, float max, float defaultVal, int decimals = 0, float step = 0)
     {
         var slider = new Slider(name, description, category, min, max, defaultVal, decimals, step);
-        RegisterOption(category, name, slider, OptionItemType.Slider);
+        RegisterOption(name, category, slider, OptionItemType.Slider);
         return slider;
     }
-    public static Dropdown AddDropdown(string category, string name, string description, int defaultIndex, string[] values)
+    public static Dropdown AddDropdown(string name, string description, string category, int defaultIndex, string[] values)
     {
         var dropdown = new Dropdown(name, description, category, defaultIndex, values);
-        RegisterOption(category, name, dropdown, OptionItemType.Dropdown);
+        RegisterOption(name, category, dropdown, OptionItemType.Dropdown);
         return dropdown;
     }
-    public static void AddDivider(string category, string label)
+    public static void AddDivider(string label, string category)
     {
         _orderedEntries.Add(new(OptionItemType.Divider, label));
     }
-    static void RegisterOption(string category, string name, MenuOption option, OptionItemType type)
+    static void RegisterOption(string name, string category, MenuOption option, OptionItemType type)
     {
+        if (_options.ContainsKey(name))
+        {
+            return;
+        }
+
         if (!_categoryHeaders.Contains(category) && !_categoryKeys.TryGetValue(category, out var localizationKey))
         {
             localizationKey = LocalizationKeyManager.GetLocalizationKey(category);
@@ -68,6 +73,7 @@ public static class OptionsManager
 
         _options[name] = option;
         _categoryEntries[localizationKey].Add(new OptionEntry(type, name));
+        _orderedEntries.Add(new OptionEntry(type, name));
         _activeCategories.Add(category);
     }
     public static bool TryGetOption(OptionEntry entry, out MenuOption? option)
@@ -114,10 +120,19 @@ public static class OptionsManager
             if (!_activeCategories.Contains(option.Category))
                 continue;
 
-            _options[key] = option;
+            if (_options.TryGetValue(key, out var existing))
+            {
+                existing.ApplySaved(option);
+            }
 
-            // Reconstruct category entries
-            var category = option.Category;
+            if (!_categoryKeys.TryGetValue(option.Category, out var locKey))
+            {
+                locKey = LocalizationKeyManager.GetLocalizationKey(option.Category);
+                _categoryKeys[option.Category] = locKey;
+                _categoryHeaders.Add(option.Category);
+                _categoryEntries[locKey] = [];
+            }
+
             var type = option switch
             {
                 Toggle => OptionItemType.Toggle,
@@ -125,14 +140,6 @@ public static class OptionsManager
                 Dropdown => OptionItemType.Dropdown,
                 _ => throw new NotSupportedException($"Unsupported option type: {option.GetType().Name}")
             };
-
-            if (!_categoryKeys.TryGetValue(category, out var locKey))
-            {
-                locKey = LocalizationKeyManager.GetLocalizationKey(category);
-                _categoryKeys[category] = locKey;
-                _categoryHeaders.Add(category);
-                _categoryEntries[locKey] = [];
-            }
 
             _categoryEntries[locKey].Add(new OptionEntry(type, key));
         }

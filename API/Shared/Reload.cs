@@ -16,7 +16,6 @@ public static class Reload
 #nullable disable
     private static string _reloadCommand;
     private static string _reloadPluginsFolder;
-    // private static ReloadBehaviour _clientBehavior;
     private static Keybinding _clientReloadKeybinding;
 #nullable enable
 
@@ -35,19 +34,8 @@ public static class Reload
 
         if (VWorld.IsClient)
         {
-            /*
-            _clientReloadKeybinding = KeybindManager.Register(new()
-            {
-                Id = "gg.deca.Bloodstone.reload",
-                Category = "Bloodstone",
-                Name = "Reload Plugins",
-                DefaultKeybinding = KeyCode.F6,
-            });
-            */
-
-            _clientReloadKeybinding = KeybindManager.AddKeybind("gg.deca.Bloodstone.reload", "Reload Plugins", "Bloodstone", KeyCode.F6);
+            _clientReloadKeybinding = KeybindManager.AddKeybind("Reload", "Reload Plugins", MyPluginInfo.PLUGIN_NAME, KeyCode.F6);
             _clientReloadKeybinding.AddKeyDownListener(ReloadClientPlugins);
-            // _clientBehavior = BloodstonePlugin.Instance.AddComponent<ReloadBehaviour>();
         }
 
         LoadPlugins();
@@ -55,13 +43,6 @@ public static class Reload
     internal static void Uninitialize()
     {
         ChatMessageSystemServerPatch.OnChatMessageHandler -= HandleReloadCommand;
-
-        /*
-        if (_clientBehavior != null)
-        {
-            UnityEngine.Object.Destroy(_clientBehavior);
-        }
-        */
     }
     private static void HandleReloadCommand(VChatEvent ev)
     {
@@ -165,20 +146,4 @@ public static class Reload
         UnloadPlugins();
         LoadPlugins();
     }
-
-    /*
-    class ReloadBehaviour : MonoBehaviour
-    {
-        void Update()
-        {
-            // does this need to be called from MonoBehaviour? either way, self note to add listener later
-            if (_clientReloadKeybinding.IsPressed)
-            {
-                BloodstonePlugin.Logger.LogInfo("Reloading client plugins...");
-                UnloadPlugins();
-                LoadPlugins();
-            }
-        }
-    }
-    */
 }

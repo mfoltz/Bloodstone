@@ -1,5 +1,4 @@
 ﻿using Bloodstone.Util;
-using Epic.OnlineServices.RTC;
 using ProjectM;
 using Stunlock.Localization;
 using System;
@@ -79,6 +78,11 @@ public static class KeybindManager
     };
     public static Keybinding AddKeybind(string name, string description, string category, KeyCode defaultKey)
     {
+        if (_keybinds.TryGetValue(name, out var existing))
+        {
+            return existing;
+        }
+
         if (!_categoryHeaders.Contains(category) && !_categoryKeys.TryGetValue(category, out var localizationKey))
         {
             localizationKey = LocalizationKeyManager.GetLocalizationKey(category);
@@ -92,13 +96,8 @@ public static class KeybindManager
         }
 
         var keybinds = _categories[localizationKey];
-
-        if (_keybinds.TryGetValue(name, out var existing))
-        {
-            return existing;
-        }
-
         var keybind = new Keybinding(name, description, category, defaultKey);
+
         keybinds[name] = keybind;
         _keybinds[name] = keybind;
         _activeCategories.Add(category);
@@ -173,8 +172,6 @@ public static class KeybindManager
             if (!_activeCategories.Contains(keybind.Category))
                 continue;
 
-            _keybinds[key] = keybind;
-
             if (!_categoryKeys.TryGetValue(keybind.Category, out var locKey))
             {
                 locKey = LocalizationKeyManager.GetLocalizationKey(keybind.Category);
@@ -183,7 +180,11 @@ public static class KeybindManager
                 _categories[locKey] = [];
             }
 
-            _categories[_categoryKeys[keybind.Category]][keybind.Name] = keybind;
+            if (_categories.TryGetValue(_categoryKeys[keybind.Category], out var keybinds) &&
+                keybinds.TryGetValue(keybind.Name, out var registered))
+            {
+                registered.ApplySaved(keybind);
+            }
         }
     }
 }

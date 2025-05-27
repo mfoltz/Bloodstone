@@ -34,9 +34,6 @@ public class Keybinding
     public KeyCode Primary = KeyCode.None;
     public string PrimaryName => KeybindManager.GetLiteral(Primary);
 
-    // public KeyCode Secondary = KeyCode.None;
-    // public string SecondaryName => KeybindManager.GetLiteral(Secondary);
-
     public delegate void KeyHandler();
 
     public event KeyHandler OnKeyPressedHandler = delegate { };
@@ -54,8 +51,7 @@ public class Keybinding
 
     [JsonIgnore]
     public int AssetGuid;
-
-    // public Keybinding() { }
+    public Keybinding() { }
     public Keybinding(string name, string description, string category, KeyCode defaultKey)
     {
         Name = name;
@@ -78,6 +74,5 @@ public class Keybinding
         if (keybind == null) return;
 
         Primary = keybind.Primary;
-        // Secondary = keybind.Secondary;
     }
 }

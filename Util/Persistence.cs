@@ -62,6 +62,8 @@ internal static class Persistence
                 return [];
             }
 
+            VWorld.Log.LogWarning($"Loading {fileKey}...");
+
             string fileText = File.ReadAllText(filePath);
             return fileText.IsNullOrWhiteSpace()
                 ? []

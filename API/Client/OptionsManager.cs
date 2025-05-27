@@ -1,10 +1,11 @@
 ﻿using Bloodstone.API.Shared;
+using Bloodstone.Util;
 using Stunlock.Localization;
 using System;
 using System.Collections.Generic;
 
 namespace Bloodstone.API.Client;
-internal static class OptionsManager
+public static class OptionsManager
 {
     public enum OptionItemType 
     { 
@@ -18,6 +19,8 @@ internal static class OptionsManager
         public OptionItemType Type { get; } = type;
         public string Key { get; } = key;
     }
+
+    static readonly HashSet<string> _activeCategories = [];
     public static IReadOnlyDictionary<LocalizationKey, List<OptionEntry>> CategoryEntries => _categoryEntries;
     static readonly Dictionary<LocalizationKey, List<OptionEntry>> _categoryEntries = [];
     public static IReadOnlyDictionary<string, MenuOption> Options => _options;
@@ -27,38 +30,29 @@ internal static class OptionsManager
     static readonly HashSet<string> _categoryHeaders = [];
     public static IReadOnlyList<OptionEntry> OrderedEntries => _orderedEntries;
     static readonly List<OptionEntry> _orderedEntries = [];
-    public static Toggle AddToggle(string name, string description, bool defaultValue)
+    public static Toggle AddToggle(string category, string name, string description, bool defaultValue)
     {
-        var toggle = new Toggle(name, description, defaultValue);
-        _options[name] = toggle;
-        _orderedEntries.Add(new OptionEntry(OptionItemType.Toggle, name));
+        var toggle = new Toggle(name, description, category, defaultValue);
+        RegisterOption(category, name, toggle, OptionItemType.Toggle);
         return toggle;
     }
-    public static Slider AddSlider(string name, string description, float min, float max, float defaultVal, int decimals = 0, float step = 0)
+    public static Slider AddSlider(string category, string name, string description, float min, float max, float defaultVal, int decimals = 0, float step = 0)
     {
-        var slider = new Slider(name, description, min, max, defaultVal, decimals, step);
-        _options[name] = slider;
-        _orderedEntries.Add(new OptionEntry(OptionItemType.Slider, name));
+        var slider = new Slider(name, description, category, min, max, defaultVal, decimals, step);
+        RegisterOption(category, name, slider, OptionItemType.Slider);
         return slider;
     }
-    public static Dropdown AddDropdown(string name, string description, int defaultIndex, string[] values)
+    public static Dropdown AddDropdown(string category, string name, string description, int defaultIndex, string[] values)
     {
-        var dropdown = new Dropdown(name, description, defaultIndex, values);
-        _options[name] = dropdown;
-        _orderedEntries.Add(new OptionEntry(OptionItemType.Dropdown, name));
+        var dropdown = new Dropdown(name, description, category, defaultIndex, values);
+        RegisterOption(category, name, dropdown, OptionItemType.Dropdown);
         return dropdown;
     }
-    public static void AddDivider(string label)
+    public static void AddDivider(string category, string label)
     {
         _orderedEntries.Add(new(OptionItemType.Divider, label));
     }
     static void RegisterOption(string category, string name, MenuOption option, OptionItemType type)
-    {
-        var localizationKey = LocalizeOptionHeader(category);
-        _options[name] = option;
-        _categoryEntries[localizationKey].Add(new OptionEntry(type, name));
-    }
-    static LocalizationKey LocalizeOptionHeader(string category)
     {
         if (!_categoryHeaders.Contains(category) && !_categoryKeys.TryGetValue(category, out var localizationKey))
         {
@@ -72,7 +66,9 @@ internal static class OptionsManager
             localizationKey = _categoryKeys[category];
         }
 
-        return localizationKey;
+        _options[name] = option;
+        _categoryEntries[localizationKey].Add(new OptionEntry(type, name));
+        _activeCategories.Add(category);
     }
     public static bool TryGetOption(OptionEntry entry, out MenuOption? option)
     {
@@ -108,4 +104,37 @@ internal static class OptionsManager
         OptionItemType.Dropdown => typeof(int),
         _ => null
     };
+    internal static void TryLoadOptions()
+    {
+        var loaded = Persistence.LoadOptions();
+        if (loaded == null) return;
+
+        foreach (var (key, option) in loaded)
+        {
+            if (!_activeCategories.Contains(option.Category))
+                continue;
+
+            _options[key] = option;
+
+            // Reconstruct category entries
+            var category = option.Category;
+            var type = option switch
+            {
+                Toggle => OptionItemType.Toggle,
+                Slider => OptionItemType.Slider,
+                Dropdown => OptionItemType.Dropdown,
+                _ => throw new NotSupportedException($"Unsupported option type: {option.GetType().Name}")
+            };
+
+            if (!_categoryKeys.TryGetValue(category, out var locKey))
+            {
+                locKey = LocalizationKeyManager.GetLocalizationKey(category);
+                _categoryKeys[category] = locKey;
+                _categoryHeaders.Add(category);
+                _categoryEntries[locKey] = [];
+            }
+
+            _categoryEntries[locKey].Add(new OptionEntry(type, key));
+        }
+    }
 }

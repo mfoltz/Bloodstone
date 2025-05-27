@@ -1,8 +1,10 @@
 using BepInEx.Unity.IL2CPP;
+using Bloodstone.API.Client;
 using Bloodstone.API.Server;
 using Bloodstone.API.Shared;
 using Bloodstone.Network;
 using Bloodstone.Services;
+using Bloodstone.Util;
 using HarmonyLib;
 using ProjectM;
 using Stunlock.Core;
@@ -58,10 +60,9 @@ static class OnInitialize
         public static void Initialize()
         {
             Bootstrapper.Initialize();
+            ComponentRegistry.Initialize();
             VEvents.Initialize();
             PlayerService.Initialize();
-            // NetworkTesting.PingPong();
-
             InvokePlugins();
         }
     }
@@ -72,9 +73,8 @@ static class OnInitialize
         public static void Initialize()
         {
             Bootstrapper.Initialize();
-            // NetworkTesting.PingPong();
-            // NetworkTesting._ready = true;
-
+            KeybindManager.TryLoadKeybinds();
+            OptionsManager.TryLoadOptions();
             InvokePlugins();
         }
     }

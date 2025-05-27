@@ -195,8 +195,6 @@ internal static class OptionsMenuPatches
                 {
                     if (key == KeyCode.Escape)
                     {
-                        VWorld.Log.LogWarning($"[Bloodstone.Rebind] Rebind cancelled: {binding.name}");
-
                         __instance.OnRebindingCancel(false, false);
 
                         yield break;
@@ -204,8 +202,6 @@ internal static class OptionsMenuPatches
 
                     if (key == KeyCode.Backspace)
                     {
-                        VWorld.Log.LogWarning($"[Bloodstone.Rebind] Rebind cancelled: {binding.name}");
-
                         __instance.OnEntryCleared(binding, ButtonInputAction.None);
                         KeybindManager.Rebind(keybind, KeyCode.None);
                         binding.SetPrimary(keybind.PrimaryName);
@@ -227,8 +223,6 @@ internal static class OptionsMenuPatches
         KeybindManager.Rebind(keybind, newKey);
         __instance.OnRebindingComplete(false);
         binding.SetPrimary(keybind.PrimaryName);
-
-        VWorld.Log.LogWarning($"[Bloodstone.Rebind] Rebind complete: {binding.name} -> {newKey}");
     }
     static GameObject CreateDivider(Transform parent, string dividerText)
     {

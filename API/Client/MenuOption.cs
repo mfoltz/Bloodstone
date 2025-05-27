@@ -13,6 +13,7 @@ public abstract class MenuOption
 {
     public string Name { get; set; }
     public string Description { get; set; }
+    public string Category { get; set; }
 
     [JsonIgnore]
     public LocalizationKey NameKey;
@@ -20,12 +21,13 @@ public abstract class MenuOption
     [JsonIgnore]
     public LocalizationKey DescKey;
     protected MenuOption() { }
-    protected MenuOption(string name, string description)
+    protected MenuOption(string name, string description, string category)
     {
         Name = name;
         Description = description;
         NameKey = LocalizationKeyManager.GetLocalizationKey(name);
         DescKey = LocalizationKeyManager.GetLocalizationKey(description);
+        Category = category;
     }
     public abstract void ApplyDefault();
     public abstract void ApplySaved(MenuOption other);
@@ -40,8 +42,8 @@ public abstract class MenuOption<T> : MenuOption
 
     public event OptionChangedHandler<T> OnOptionChangedHandler = delegate { };
     protected MenuOption() : base() { }
-    protected MenuOption(string name, string description, T defaultValue)
-        : base(name, description)
+    protected MenuOption(string name, string description, string category, T defaultValue)
+        : base(name, description, category)
     {
         Value = defaultValue;
         DefaultValue = defaultValue;
@@ -71,8 +73,8 @@ public abstract class MenuOption<T> : MenuOption
 public class Toggle : MenuOption<bool>
 {
     public Toggle() : base() { }
-    public Toggle(string name, string description, bool defaultValue)
-        : base(name, description, defaultValue) { }
+    public Toggle(string name, string description, string category, bool defaultValue)
+        : base(name, description, category, defaultValue) { }
     public override void ApplySaved(MenuOption other)
     {
         if (other is Toggle toggle)
@@ -98,8 +100,8 @@ public class Slider : MenuOption<float>
         set => base.Value = Mathf.Clamp(value, MinValue, MaxValue);
     }
     public Slider() : base() { }
-    public Slider(string name, string description, float min, float max, float defaultValue, int decimals = default, float step = default)
-        : base(name, description, Mathf.Clamp(defaultValue, min, max))
+    public Slider(string name, string description, string category, float min, float max, float defaultValue, int decimals = default, float step = default)
+        : base(name, description, category, Mathf.Clamp(defaultValue, min, max))
     {
         MinValue = min;
         MaxValue = max;
@@ -126,8 +128,8 @@ public class Dropdown : MenuOption<int>
 {
     public List<string> Values { get; set; } = [];
     public Dropdown() : base() { }
-    public Dropdown(string name, string description, int defaultIndex, string[] values)
-        : base(name, description, defaultIndex)
+    public Dropdown(string name, string description, string category, int defaultIndex, string[] values)
+        : base(name, description, category, defaultIndex)
     {
         Values = values?.ToList() ?? [];
     }

@@ -28,7 +28,7 @@ public interface IRunOnInitialized
     /// See the type documentation for IRunOnInitialized for more details on the
     /// exact semantics of this function.
     /// </summary>
-    internal void OnGameInitialized()
+    public void OnGameInitialized()
     {
 
     }

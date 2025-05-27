@@ -42,6 +42,7 @@ internal static class Persistence
     // public static void SaveCommands() => SaveDictionary(CommandQuips, COMMANDS_KEY);
     public static Dictionary<string, Keybinding>? LoadKeybinds() => LoadDictionary<string, Keybinding>(KEYBINDS_KEY);
     public static Dictionary<string, MenuOption>? LoadOptions() => LoadDictionary<string, MenuOption>(OPTIONS_KEY);
+
     // public static Dictionary<int, Command> LoadCommands() => LoadDictionary<int, Command>(COMMANDS_KEY);
     static Dictionary<T, U>? LoadDictionary<T, U>(string fileKey)
         where T : notnull
@@ -57,20 +58,6 @@ internal static class Persistence
             if (!File.Exists(filePath))
             {
                 File.Create(filePath).Dispose();
-
-                /*
-                if (fileKey == COMMANDS_KEY && typeof(T) == typeof(int) && typeof(U) == typeof(Command))
-                {
-                    var defaultDict = new Dictionary<int, Command>();
-                    for (int i = 0; i < 8; i++)
-                    {
-                        defaultDict[i] = new Command { Name = "", InputString = "" };
-                    }
-
-                    File.WriteAllText(filePath, JsonSerializer.Serialize(defaultDict, _jsonOptions));
-                    return defaultDict as Dictionary<T, U>;
-                }
-                */
 
                 return [];
             }
@@ -103,6 +90,7 @@ internal static class Persistence
             VWorld.Log.LogWarning($"Failed to serialize {fileKey} contents: {ex.Message}");
         }
     }
+   
 }
 internal class MenuOptionJsonConverter : JsonConverter<MenuOption>
 {

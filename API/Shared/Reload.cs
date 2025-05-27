@@ -45,7 +45,7 @@ public static class Reload
             });
             */
 
-            _clientReloadKeybinding = KeybindManager.Register("gg.deca.Bloodstone.reload", "Reload Plugins", "Bloodstone", KeyCode.F6);
+            _clientReloadKeybinding = KeybindManager.AddKeybind("gg.deca.Bloodstone.reload", "Reload Plugins", "Bloodstone", KeyCode.F6);
             _clientReloadKeybinding.AddKeyDownListener(ReloadClientPlugins);
             // _clientBehavior = BloodstonePlugin.Instance.AddComponent<ReloadBehaviour>();
         }

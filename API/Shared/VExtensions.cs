@@ -198,6 +198,21 @@ public static class VExtensions
 
         return NetworkId.Empty;
     }
+    public static void DumpEntity(this Entity entity)
+    {
+        World world = VWorld.Game;
+        Il2CppSystem.Text.StringBuilder sb = new();
+
+        try
+        {
+            EntityDebuggingUtility.DumpEntity(world, entity, true, sb);
+            VWorld.Log.LogInfo($"Entity Dump:\n{sb.ToString()}");
+        }
+        catch (Exception e)
+        {
+            VWorld.Log.LogWarning($"Error dumping entity: {e.Message}");
+        }
+    }
     public static NativeAccessor<Entity> ToEntityArrayAccessor(this EntityQuery entityQuery, Allocator allocator = Allocator.Temp)
     {
         NativeArray<Entity> entities = entityQuery.ToEntityArray(allocator);

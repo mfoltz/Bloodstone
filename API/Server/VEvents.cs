@@ -197,7 +197,6 @@ public class VEvents
         {
             module.Initialize();
             _modules[typeof(T)] = module;
-            // VWorld.Log.LogInfo($"[Register] Registered module for event type: {typeof(T).Name}");
         }
         public static void Subscribe<T>(Action<T> handler) where T : IGameEvent, new()
         {

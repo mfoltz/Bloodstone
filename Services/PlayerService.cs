@@ -3,8 +3,8 @@ using Il2CppInterop.Runtime;
 using ProjectM;
 using ProjectM.Network;
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Entities;
 using static Bloodstone.API.Server.VEvents;
 using static Bloodstone.API.Server.VEvents.ConnectionEventModules;
@@ -34,6 +34,8 @@ public static class PlayerService
         public Entity CharacterEntity { get; set; } = characterEntity;
         public User User { get; set; } = user;
     }
+
+    static QueryDesc _userQueryDesc;
     public static void Initialize()
     {
         if (_initialized) return;
@@ -44,45 +46,48 @@ public static class PlayerService
             ComponentType.ReadOnly(Il2CppType.Of<User>())
         ];
 
-        QueryDesc userQueryDesc = EntityManager.CreateQueryDesc(
+        _userQueryDesc = EntityManager.CreateQueryDesc(
             allTypes: userAllComponents,
             options: EntityQueryOptions.IncludeDisabled
         );
 
-        BuildPlayerInfoCache(userQueryDesc).Run();
+        BuildPlayerInfoCache();
         
-        // subscribing to connection events
+        // subscribing to connection-related events
         ModuleRegistry.Subscribe<UserConnected>(OnConnect); 
         ModuleRegistry.Subscribe<UserDisconnected>(OnDisconnect);
         ModuleRegistry.Subscribe<CharacterCreated>(OnCreate);
         ModuleRegistry.Subscribe<UserKicked>(OnKick);
     }
-    static IEnumerator BuildPlayerInfoCache(QueryDesc userQueryDesc)
+    static void BuildPlayerInfoCache()
     {
-        yield return QueryResultStreamAsync(
-            userQueryDesc,
-            stream =>
-            {
-                try
-                {
-                    using (stream)
-                    {
-                        foreach (QueryResult result in stream.GetResults())
-                        {
-                            Entity userEntity = result.Entity;
-                            User user = result.ResolveComponentData<User>();
+        NativeArray<Entity> userEntities = _userQueryDesc.EntityQuery.ToEntityArray(Allocator.Temp);
 
-                            PlayerInfo playerInfo = CreatePlayerInfo(userEntity, user);
-                            AddOnlinePlayerInfo(playerInfo);
-                        }
-                    }
-                }
-                catch (Exception ex)
+        try
+        {
+            foreach (Entity userEntity in userEntities)
+            {
+                if (!userEntity.Exists()) continue;
+
+                User user = userEntity.GetUser();
+
+                PlayerInfo playerInfo = CreatePlayerInfo(userEntity, user);
+                AddPlayerInfo(playerInfo);
+
+                if (user.IsConnected)
                 {
-                    VWorld.Log.LogWarning($"[PlayerService] BuildPlayerInfoCaches() - {ex}");
+                    AddOnlinePlayerInfo(playerInfo);
                 }
             }
-        );
+        }
+        catch (Exception ex)
+        {
+            VWorld.Log.LogWarning($"[PlayerService] BuildPlayerInfoCache() - {ex}");
+        }
+        finally
+        {
+            userEntities.Dispose();
+        }
     }
     internal static PlayerInfo CreatePlayerInfo(Entity userEntity, User user)
     {
@@ -95,8 +100,8 @@ public static class PlayerService
     {
         Entity userEntity = serverClient.UserEntity;
         User user = userEntity.GetUser();
-        ulong steamId = user.PlatformId;
-        return SteamIdPlayerInfoCache.TryGetValue(steamId, out playerInfo);
+
+        return SteamIdPlayerInfoCache.TryGetValue(user.PlatformId, out playerInfo);
     }
     static void AddPlayerInfo(PlayerInfo playerInfo)
     {

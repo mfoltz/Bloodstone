@@ -7,6 +7,7 @@ using Bloodstone.Services;
 using Bloodstone.Util;
 using HarmonyLib;
 using ProjectM;
+using ProjectM.Gameplay.WarEvents;
 using Stunlock.Core;
 
 namespace Bloodstone.Patches.Shared;
@@ -62,8 +63,15 @@ static class OnInitialize
             Bootstrapper.Initialize();
             ComponentRegistry.Initialize();
             VEvents.Initialize();
-            PlayerService.Initialize();
+            // PlayerService.Initialize(); // slightly too soon?
             InvokePlugins();
+        }
+
+        [HarmonyPatch(typeof(WarEventRegistrySystem), nameof(WarEventRegistrySystem.RegisterWarEventEntities))]
+        [HarmonyPostfix]
+        static void RegisterWarEventEntitiesPostfix()
+        {
+            PlayerService.Initialize();
         }
     }
     static class ClientDetours

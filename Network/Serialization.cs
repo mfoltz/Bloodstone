@@ -24,7 +24,7 @@ internal static class Serialization
     static readonly ConcurrentDictionary<Type, UnpackDelHandler> _unpackers = new();
     static PackDelHandler CreatePacker(Type type)
     {
-        VWorld.Log.LogWarning($"[CreatePacker] Creating packer ({type.Name})");
+        // VWorld.Log.LogWarning($"[CreatePacker] Creating packer ({type.Name})");
 
         if (IsBlittable(type))
         {
@@ -50,7 +50,7 @@ internal static class Serialization
     }
     static UnpackDelHandler CreateUnpacker(Type type)
     {
-        VWorld.Log.LogWarning($"[CreateUnpacker] Creating unpacker ({type.Name})");
+        // VWorld.Log.LogWarning($"[CreateUnpacker] Creating unpacker ({type.Name})");
 
         if (IsBlittable(type))
         {

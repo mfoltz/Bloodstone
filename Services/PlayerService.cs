@@ -8,7 +8,6 @@ using Unity.Collections;
 using Unity.Entities;
 using static Bloodstone.API.Server.VEvents;
 using static Bloodstone.API.Server.VEvents.ConnectionEventModules;
-using static Bloodstone.Util.EntityQueries;
 
 namespace Bloodstone.Services;
 public static class PlayerService
@@ -34,8 +33,6 @@ public static class PlayerService
         public Entity CharacterEntity { get; set; } = characterEntity;
         public User User { get; set; } = user;
     }
-
-    static QueryDesc _userQueryDesc;
     public static void Initialize()
     {
         if (_initialized) return;
@@ -46,12 +43,12 @@ public static class PlayerService
             ComponentType.ReadOnly(Il2CppType.Of<User>())
         ];
 
-        _userQueryDesc = EntityManager.CreateQueryDesc(
+        EntityQuery userQuery = EntityManager.BuildQuery(
             allTypes: userAllComponents,
             options: EntityQueryOptions.IncludeDisabled
         );
 
-        BuildPlayerInfoCache();
+        BuildPlayerInfoCache(userQuery);
         
         // subscribing to connection-related events
         ModuleRegistry.Subscribe<UserConnected>(OnConnect); 
@@ -59,9 +56,9 @@ public static class PlayerService
         ModuleRegistry.Subscribe<CharacterCreated>(OnCreate);
         ModuleRegistry.Subscribe<UserKicked>(OnKick);
     }
-    static void BuildPlayerInfoCache()
+    static void BuildPlayerInfoCache(EntityQuery userQuery)
     {
-        NativeArray<Entity> userEntities = _userQueryDesc.EntityQuery.ToEntityArray(Allocator.Temp);
+        NativeArray<Entity> userEntities = userQuery.ToEntityArray(Allocator.Temp);
 
         try
         {

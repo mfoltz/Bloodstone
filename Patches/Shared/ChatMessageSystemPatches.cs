@@ -54,7 +54,6 @@ public static class ChatMessageSystemServerPatch
             if (Transport.HasPacketPrefix(messageText))
             {
                 OnServerPacketReceived(fromCharacter.User.GetUser(), messageText);
-                // OnClientPacketReceived(messageText);
                 entity.Destroy(true);
                 continue;
             }
@@ -121,7 +120,6 @@ public static class ChatMessageSystemClientPatch
                     User = VWorld.LocalUser
                 };
 
-                // OnServerPacketReceived(fromCharacter, messageText);
                 OnClientPacketReceived(fromCharacter.User.GetUser(), messageText);
                 entity.Destroy(true);
             }

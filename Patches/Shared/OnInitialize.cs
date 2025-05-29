@@ -4,7 +4,6 @@ using Bloodstone.API.Server;
 using Bloodstone.API.Shared;
 using Bloodstone.Network;
 using Bloodstone.Services;
-using Bloodstone.Util;
 using HarmonyLib;
 using ProjectM;
 using ProjectM.Gameplay.WarEvents;
@@ -61,9 +60,8 @@ static class OnInitialize
         public static void Initialize()
         {
             Bootstrapper.Initialize();
-            ComponentRegistry.Initialize();
             VEvents.Initialize();
-            // PlayerService.Initialize(); // slightly too soon?
+            // PlayerService.Initialize(); // slightly too soon? yep, putting below for now
             InvokePlugins();
         }
 

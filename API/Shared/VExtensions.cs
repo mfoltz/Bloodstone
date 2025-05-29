@@ -213,6 +213,40 @@ public static class VExtensions
             VWorld.Log.LogWarning($"Error dumping entity: {e.Message}");
         }
     }
+    public static EntityQuery BuildQuery(
+        this EntityManager entityManager,
+        ComponentType[] allTypes,
+        ComponentType[]? anyTypes = null,
+        ComponentType[]? noneTypes = null,
+        EntityQueryOptions? options = default)
+    {
+        if (allTypes == null || allTypes.Length == 0)
+            throw new ArgumentException("AllTypes must contain at least one component!", nameof(allTypes));
+
+        var builder = new EntityQueryBuilder(Allocator.Temp);
+
+        foreach (var componentType in allTypes)
+            builder.AddAll(componentType);
+
+        if (anyTypes != null)
+        {
+            foreach (var componentType in anyTypes)
+                builder.AddAny(componentType);
+        }
+
+        if (noneTypes != null)
+        {
+            foreach (var componentType in noneTypes)
+                builder.AddNone(componentType);
+        }
+
+        if (options.HasValue)
+            builder.WithOptions(options.Value);
+
+        var query = entityManager.CreateEntityQuery(ref builder);
+
+        return query;
+    }
     public static NativeAccessor<Entity> ToEntityArrayAccessor(this EntityQuery entityQuery, Allocator allocator = Allocator.Temp)
     {
         NativeArray<Entity> entities = entityQuery.ToEntityArray(allocator);

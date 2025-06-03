@@ -10,7 +10,7 @@ using static Bloodstone.API.Client.OptionsManager;
 using static Bloodstone.API.Client.KeybindManager;
 using Bloodstone.API.Shared;
 
-namespace Bloodstone.Util;
+namespace Bloodstone.Utilities;
 internal static class Persistence
 {
     static readonly JsonSerializerOptions _jsonOptions = new()
@@ -24,7 +24,7 @@ internal static class Persistence
 
     const string KEYBINDS_KEY = "Keybinds";
     const string OPTIONS_KEY = "Options";
-    const string COMMANDS_KEY = "Commands";
+    // const string COMMANDS_KEY = "Commands";
 
     static readonly string _keybindsJson = Path.Combine(_directoryPath, $"{KEYBINDS_KEY}.json");
     static readonly string _settingsJson = Path.Combine(_directoryPath, $"{OPTIONS_KEY}.json");

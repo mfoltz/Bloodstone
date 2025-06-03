@@ -90,24 +90,9 @@ public static class VExtensions
 
         return false;
     }
-    public static bool TryGetComponent<T>(this Entity entity) where T : struct
-    {
-        if (entity.Has<T>())
-        {
-            entity.Remove<T>();
-
-            return true;
-        }
-
-        return false;
-    }
     public static bool Has<T>(this Entity entity) where T : struct
     {
         return EntityManager.HasComponent(entity, new(Il2CppType.Of<T>()));
-    }
-    public static void TryAdd<T>(this Entity entity) where T : struct
-    {
-        if (!entity.Has<T>()) entity.Add<T>();
     }
     public static void Add<T>(this Entity entity) where T : struct
     {
@@ -172,7 +157,7 @@ public static class VExtensions
     }
     public static bool IsVBlood(this Entity entity)
     {
-        return entity.Has<VBloodConsumeSource>();
+        return entity.Has<VBloodUnit>() && entity.Has<VBloodConsumeSource>();
     }
     public static bool IsGateBoss(this Entity entity)
     {

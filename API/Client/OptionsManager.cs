@@ -1,5 +1,5 @@
 ﻿using Bloodstone.API.Shared;
-using Bloodstone.Util;
+using Bloodstone.Utilities;
 using Stunlock.Localization;
 using System;
 using System.Collections.Generic;

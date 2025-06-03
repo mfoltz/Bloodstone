@@ -6,7 +6,7 @@ using Bloodstone.API.Shared;
 using Bloodstone.Network;
 using Bloodstone.Patches.Client;
 using Bloodstone.Patches.Shared;
-using Bloodstone.Util;
+using Bloodstone.Utilities;
 using System;
 
 namespace Bloodstone

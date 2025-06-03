@@ -1,6 +1,6 @@
 using Bloodstone.Network;
 using Bloodstone.Services;
-using Bloodstone.Util;
+using Bloodstone.Utilities;
 
 namespace Bloodstone.API.Shared;
 

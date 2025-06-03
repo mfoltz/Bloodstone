@@ -1,4 +1,4 @@
-﻿using Bloodstone.Util;
+﻿using Bloodstone.Utilities;
 using ProjectM;
 using Stunlock.Localization;
 using System;

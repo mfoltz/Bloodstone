@@ -6,7 +6,7 @@ using Stunlock.Network;
 using Unity.Collections;
 using Unity.Entities;
 using Bloodstone.API;
-using Bloodstone.Util;
+using Bloodstone.Utilities;
 using static NetworkEvents_Serialize;
 using HarmonyLib;
 using ProjectM;

@@ -1,6 +1,6 @@
 ﻿using Bloodstone.API.Client;
 using Bloodstone.API.Shared;
-using Bloodstone.Util;
+using Bloodstone.Utilities;
 using HarmonyLib;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using ProjectM;

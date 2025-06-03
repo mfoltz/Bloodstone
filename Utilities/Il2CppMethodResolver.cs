@@ -6,7 +6,7 @@ using Il2CppInterop.Common;
 using Il2CppInterop.Runtime.Runtime;
 using Il2CppInterop.Runtime.Runtime.VersionSpecific.MethodInfo;
 
-namespace Bloodstone.Util;
+namespace Bloodstone.Utilities;
 
 /// Code stolen/adapted from code by Kasuromi.
 /// Harmony currently resolves the wrong method pointer for structs with

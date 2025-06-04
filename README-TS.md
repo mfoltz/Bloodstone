@@ -2,7 +2,7 @@
 
 ---
 
-Bloodstone is a modding library for both client and server mods for V Rising. By itself, it does not do much except allow you to reload plugins you've put in the Bloodstone plugins folder.
+Bloodstone is a modding library for both client and server mods for V Rising.
 
 ### Installation
 
@@ -23,6 +23,11 @@ Bloodstone supports the following configuration settings, available in `BepInEx/
 
 **Server Options:**
 - `ReloadCommand` [default `!reload`]: Which text command (sent in chat) should be used to trigger reloading of plugins.
+
+### Developers
+- **Events** – subscribe to player connections, disconnections, and character creations. PlayerService maintains cache of player-related entities for using as needed in other mods.
+- **Networking** – send blittable types as packets from client to server and vice versa.
+- **Extensions** – various convenience methods for working with collections and V Rising entities. 
 
 ### Support
 

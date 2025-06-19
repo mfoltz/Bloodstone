@@ -56,6 +56,15 @@ public static class IExtensions
     {
         return index >= 0 && index < list.Count;
     }
+    public static bool Equals<T>(this T value, params T[] options) 
+    {
+        foreach (var option in options)
+        {
+            if (value.Equals(option)) return true;
+        }
+
+        return false;
+    }
     public static bool Start(this IEnumerator routine, out Coroutine coroutine)
     {
         coroutine = GameFrame.StartCoroutine(routine);

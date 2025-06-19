@@ -49,21 +49,22 @@ public static class ChatMessageSystemServerPatch
             FromCharacter fromCharacter = fromCharacters[i];
             string messageText = chatMessage.MessageText.Value;
 
-            VWorld.Log.LogWarning($"[ServerChatSystem] - {messageText} ({chatMessage.MessageType})");
-
             if (Transport.HasPacketPrefix(messageText))
             {
                 OnServerPacketReceived(fromCharacter.User.GetUser(), messageText);
                 entity.Destroy(true);
+
                 continue;
             }
 
-            VChatEvent vChatEvent = new(fromCharacter.User, fromCharacter.Character, messageText, chatMessage.MessageType);
+            VChatEvent ev = new(fromCharacter.User, fromCharacter.Character, messageText, chatMessage.MessageType);
+            VWorld.Log.LogInfo($"[ServerChat] [{ev.Type}] {ev.User.CharacterName}: {ev.Message}");
 
             try
             {
-                OnChatMessageHandler?.Invoke(vChatEvent);
-                if (vChatEvent.Cancelled)
+                OnChatMessageHandler?.Invoke(ev);
+
+                if (ev.Cancelled)
                     entity.Destroy(true);
             }
             catch (Exception ex)
@@ -105,13 +106,11 @@ public static class ChatMessageSystemClientPatch
             ChatMessageServerEvent chatMessage = chatMessageServerEvents[i];
             string messageText = chatMessage.MessageText.Value;
 
-            VWorld.Log.LogWarning($"[ClientChatSystem] - {messageText} ({chatMessage.MessageType})");
-
             if (Transport.HasPacketPrefix(messageText))
             {
                 if (!VWorld.LocalCharacter.Exists() || !VWorld.LocalUser.Exists())
                 {
-                    VWorld.Log.LogWarning($"[ClientChatSystem] LocalCharacter or LocalUser does not exist yet! ({DateTime.Now})");
+                    VWorld.Log.LogWarning($"[ClientChat] LocalCharacter or LocalUser does not exist yet! ({DateTime.Now})");
                 }
 
                 FromCharacter fromCharacter = new()
